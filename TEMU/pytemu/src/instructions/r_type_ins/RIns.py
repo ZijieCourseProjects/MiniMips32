@@ -14,3 +14,10 @@ class R_Ins(Instruction):
         self.__shamt = (instruction >> 6) & 0x1f
         self.__funct = instruction & 0x3f
 
+    @property
+    def rs(self):
+        return self.__rs
+
+    @property
+    def rt(self):
+        return self.__rt
