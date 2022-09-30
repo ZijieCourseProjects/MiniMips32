@@ -1,2 +1,4 @@
 class Instruction:
-    pass
+
+    def execute(self, cpu):
+        pass

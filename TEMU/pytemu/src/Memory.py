@@ -42,7 +42,7 @@ class Memory:
             rowbuf['valid'] = np.True_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
-        return rowbuf['buf']
+        return rowbuf['buf'][col:col + self.BURST_LEN]
 
     def ddr3_write(self, address, data, mask):
         if address > self.HW_MEM_SIZE:
