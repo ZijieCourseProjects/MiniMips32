@@ -7,17 +7,29 @@ class R_Ins(Instruction):
         pass
 
     def __init__(self, instruction):
-        self.__instruction = instruction
-        self.__rs = (instruction >> 21) & 0x1f
-        self.__rt = (instruction >> 16) & 0x1f
-        self.__rd = (instruction >> 11) & 0x1f
-        self.__shamt = (instruction >> 6) & 0x1f
-        self.__funct = instruction & 0x3f
+        self._instruction = instruction
+        self._rs = (instruction >> 21) & 0x1f
+        self._rt = (instruction >> 16) & 0x1f
+        self._rd = (instruction >> 11) & 0x1f
+        self._shamt = (instruction >> 6) & 0x1f
+        self._funct = instruction & 0x3f
 
     @property
     def rs(self):
-        return self.__rs
+        return self._rs
 
     @property
     def rt(self):
-        return self.__rt
+        return self._rt
+
+    @property
+    def rd(self):
+        return self._rd
+
+    @property
+    def shamt(self):
+        return self._shamt
+
+    @property
+    def funct(self):
+        return self._funct
