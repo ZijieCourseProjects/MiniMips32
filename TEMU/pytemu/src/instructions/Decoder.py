@@ -5,13 +5,15 @@ from instructions.i_type_ins import *
 
 class Decoder:
     R_TYPE_FUNC = {
-        0x24: and_ins.and_ins
+        0x24: and_ins.and_ins,
+        0x20: add_ins.add_ins
     }
 
     IJ_TYPE_OP = {
         0x0F: lui_ins.lui_ins,
         0x0D: ori_ins.ori_ins,
-        0x12: trap_ins.trap_ins
+        0x12: trap_ins.trap_ins,
+        0x08: addi_ins.addi_ins
     }
 
     @staticmethod
