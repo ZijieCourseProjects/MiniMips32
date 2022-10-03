@@ -32,8 +32,8 @@ class Register:
         return np.uint8(self.__value)
 
     @low8.setter
-    def low8(self, value: list[int]):
-        self.__value = (self.__value & 0xFFFFFF00) | np.uint8(value[0])
+    def low8(self, value):
+        self.__value = (self.__value & 0xFFFFFF00) | np.uint8(value)
 
     def __str__(self):
         return str(self.__value)

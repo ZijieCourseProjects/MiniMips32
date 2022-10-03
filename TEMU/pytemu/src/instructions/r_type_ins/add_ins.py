@@ -1,6 +1,7 @@
 import instructions.r_type_ins.RIns as RIns
-from src.RegList import RegList
+from RegList import RegList
 from ctypes import *
+
 
 class add_ins(RIns.R_Ins):
     def __init__(self, instruction):
@@ -10,6 +11,6 @@ class add_ins(RIns.R_Ins):
         #TODO integer overflow
         res = (c_int32(cpu[self._rs].low32).value + c_int32(cpu[self._rt].low32).value) & 0xFFFFFFFF
         cpu[self._rd].low32 = res
-
+        
     def __str__(self):
         return f"add ${RegList(self._rd).name}, ${RegList(self._rs).name}, ${RegList(self._rt).name}"
