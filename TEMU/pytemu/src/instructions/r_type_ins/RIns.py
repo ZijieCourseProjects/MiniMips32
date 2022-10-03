@@ -1,4 +1,4 @@
-from src.instructions.Instruction import Instruction
+from instructions.Instruction import Instruction
 
 
 class R_Ins(Instruction):
