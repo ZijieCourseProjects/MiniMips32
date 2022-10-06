@@ -5,6 +5,12 @@ from instructions.i_type_ins import *
 
 class Decoder:
     R_TYPE_FUNC = {
+        0x00: sll_ins.sll_ins,
+        0x02: srl_ins.srl_ins,
+        0x03: sra_ins.sra_ins,
+        0x04: sllv_ins.sllv_ins,
+        0x06: srlv_ins.srlv_ins,
+        0x07: srav_ins.srav_ins,
         0x24: and_ins.and_ins,
         0x20: add_ins.add_ins,
         0x21: addu_ins.addu_ins,
