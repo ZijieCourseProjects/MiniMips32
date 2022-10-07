@@ -3,7 +3,7 @@ from RegList import RegList
 from ctypes import *
 
 
-class srlv_ins(RIns.R_Ins):
+class srl_ins(RIns.R_Ins):
     def __init__(self, instruction):
         super().__init__(instruction)
 
