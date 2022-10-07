@@ -1,1 +1,1 @@
-__all__ = ['lui_ins', 'ori_ins', 'addi_ins', 'addiu_ins', 'slti_ins', 'sltiu_ins']
+__all__ = ['lui_ins', 'ori_ins', 'addi_ins', 'addiu_ins', 'slti_ins', 'sltiu_ins', 'andi_ins', 'xori_ins']
