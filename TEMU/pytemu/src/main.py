@@ -1,12 +1,13 @@
 from CPU import CPU
 import sys
 from util import in_print
+from Debugger import compute, read_memory
 
 if __name__ == '__main__':
     print('''
     Welcome to the MIPS Simulator!
         ########  ##    ## ######## ######## ##     ## ##     ## 
-        ##     ##  ##  ##     ##    ##       ###   ### ##     ## 
+        ##     ##  ##  ##     ##    ##       ##   ### ##     ## 
         ##     ##   ####      ##    ##       #### #### ##     ## 
         ########     ##       ##    ######   ## ### ## ##     ## 
         ##           ##       ##    ##       ##     ## ##     ## 
@@ -32,6 +33,10 @@ if __name__ == '__main__':
                 cpu.step()
             elif cmd == 'p':
                 cpu.print_registers()
+            elif cmd[0] == 'p' and len(cmd) > 2:
+                compute(cpu, cmd[1:len(cmd)])
+            elif cmd[0] == 'x':
+                read_memory(cpu, cmd[2:len(cmd)])
             else:
                 in_print('Unknown command')
 
