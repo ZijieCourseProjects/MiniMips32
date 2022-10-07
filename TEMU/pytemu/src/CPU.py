@@ -33,7 +33,7 @@ class CPU:
         self.__registers[key] = value
 
     def execute(self, instruction):
-        instruction.execute(self);
+        instruction.execute(self)
 
     def fetch_instruction(self):
         return self.__memory.read(self[RegList.PC.value].low32, 4)

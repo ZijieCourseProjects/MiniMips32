@@ -12,6 +12,13 @@ class Decoder:
         0x23: subu_ins.subu_ins,
         0x2A: slt_ins.slt_ins,
         0x2A: sltu_ins.sltu_ins,
+        0x1A: div_ins.div_ins,
+        0x1B: divu_ins,divu_ins,
+        0x18: mult_ins,mult_ins,
+        0x19: multu_ins,multu_ins,
+        0x27: nor_ins,nor_ins,
+        0x25: or_ins,or_ins,
+        0x26: xor_ins,xor_ins
     }
 
     IJ_TYPE_OP = {
@@ -22,6 +29,8 @@ class Decoder:
         0x09: addiu_ins.addiu_ins,
         0X0A: slti_ins.slti_ins,
         0x0B: sltiu_ins.sltiu_ins,
+        0x0C: andi_ins,andi_ins,
+        0x0E: xori_ins,xori_ins
 
     }
 

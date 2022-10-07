@@ -7,7 +7,8 @@ class addu_ins(RIns.R_Ins):
         super().__init__(instruction)
 
     def execute(self, cpu):
-        cpu[self._rd].low32 = (cpu[self._rs].low32 + cpu[self._rt].low32) & 0xFFFFFFFF
+        res = (cpu[self._rs].low32 + cpu[self._rt].low32) & 0xFFFFFFFF
+        cpu[self._rd].low32 = c_uint32(res).value
         
 
     def __str__(self):
