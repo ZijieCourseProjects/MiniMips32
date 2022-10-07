@@ -6,7 +6,6 @@ from Register import Register
 from RegList import RegList
 from Memory import Memory
 from instructions.Decoder import Decoder
-from compute import *
 
 
 class CPU:
@@ -34,7 +33,7 @@ class CPU:
         self.__registers[key] = value
 
     def execute(self, instruction):
-        instruction.execute(self);
+        instruction.execute(self)
 
     def fetch_instruction(self):
         return self.__memory.read(self[RegList.PC.value].low32, 4)
@@ -54,32 +53,6 @@ class CPU:
         while self.__state == self.CPUState.RUNNING:
             self.step()
 
-    def compute(self, string_deal):
-        if check_parentheses(string_deal):
-            # print("ans is",int(eval(string_deal)));
-            lst1 = string_deal.split()
-            cmd = ''.join(lst1)
-            cmd = cmd.upper()
-            ans = deal(self, cmd)
-            print(ans)
-        else:
-            print("parentheses Error")
-
-    def read_memory(self, cmd):
-        i = 0
-        while cmd[i] != ' ':
-            i += 1
-        var1 = cmd[0:i]
-        var2 = cmd[i + 1:len(cmd)]
-        times = int(var1)
-        startle = int(deal(self, var2.upper()))
-        for i in range(times):
-            temp = (self.__memory.read(startle, 4))
-            startle += 4
-            ans = str(hex(temp))
-            print( ans+ "0" * (10 - len(ans)))
-    def read_m(self,startle):
-        return self.__memory.read(startle, 4)
     @property
     def mem(self):
         return self.__memory
