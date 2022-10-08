@@ -1,11 +1,11 @@
 from enum import Enum
 
 import RegList
-from util import in_print
-from Register import Register
-from RegList import RegList
 from Memory import Memory
+from RegList import RegList
+from Register import Register
 from instructions.Decoder import Decoder
+from util import in_print
 
 
 class CPU:

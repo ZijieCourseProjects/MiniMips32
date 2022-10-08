@@ -1,7 +1,8 @@
-from CPU import CPU
 import sys
-from util import in_print
+
+from CPU import CPU
 from Debugger import compute, read_memory
+from util import in_print
 
 if __name__ == '__main__':
     print('''

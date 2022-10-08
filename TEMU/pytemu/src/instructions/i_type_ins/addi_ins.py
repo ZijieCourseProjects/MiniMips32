@@ -1,7 +1,8 @@
-from instructions.i_type_ins.IIns import I_Ins
-from instructions.Instruction import signed_extend
-from RegList import RegList
 from ctypes import *
+
+from RegList import RegList
+from instructions.Instruction import signed_extend
+from instructions.i_type_ins.IIns import I_Ins
 
 
 class addi_ins(I_Ins):

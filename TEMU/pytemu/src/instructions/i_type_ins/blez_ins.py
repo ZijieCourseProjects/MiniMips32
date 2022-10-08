@@ -1,7 +1,8 @@
-from instructions.i_type_ins.IIns import I_Ins
+from ctypes import *
+
 from RegList import RegList
 from instructions.Instruction import signed_extend
-from ctypes import *
+from instructions.i_type_ins.IIns import I_Ins
 
 
 class blez_ins(I_Ins):

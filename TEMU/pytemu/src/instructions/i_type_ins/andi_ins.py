@@ -1,6 +1,5 @@
-from instructions.i_type_ins.IIns import I_Ins
 from RegList import RegList
-from ctypes import *
+from instructions.i_type_ins.IIns import I_Ins
 
 
 class andi_ins(I_Ins):
@@ -9,6 +8,6 @@ class andi_ins(I_Ins):
 
     def execute(self, cpu):
         cpu[self._rt].low32 = cpu[self._rs].low32 & (self._imm | 0x00000000)
-        
+
     def __str__(self):
         return f"andi ${RegList(self._rt).name}, ${RegList(self._rs).name}, {hex(self._imm)}"

@@ -1,6 +1,7 @@
-from instructions.j_type_ins.JIns import J_Ins
-from RegList import RegList
 from ctypes import *
+
+from RegList import RegList
+from instructions.j_type_ins.JIns import J_Ins
 
 
 class jr_ins(J_Ins):
