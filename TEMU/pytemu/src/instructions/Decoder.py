@@ -47,7 +47,9 @@ class Decoder:
         0X0A: slti_ins.slti_ins,
         0x0B: sltiu_ins.sltiu_ins,
         0x0C: andi_ins.andi_ins,
-        0x0E: xori_ins.xori_ins
+        0x0E: xori_ins.xori_ins,
+        0x20: lb_ins.lb_ins,
+        0x2B: sw_ins.sw_ins,
 
     }
 
