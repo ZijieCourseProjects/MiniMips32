@@ -14,7 +14,7 @@ class CPU:
 
     def __init__(self):
         self.__memory = Memory()
-        self.__registers = [Register() for i in range(35)]
+        self.__registers = [Register() for _ in range(35)]
         self.__registers[RegList.PC.value].low32 = self.ENTRY_START & 0x1fffffff
         self.__state = self.CPUState.RUNNING
 
