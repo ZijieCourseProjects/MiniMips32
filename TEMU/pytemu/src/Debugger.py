@@ -74,7 +74,10 @@ def read_memory(cpu, cmd):
     var1 = cmd[0:i]
     var2 = cmd[i + 1:len(cmd)]
     times = int(var1)
-    startle = int(deal(cpu, var2.upper()))
+    lst1 = var2.split()
+    cmd = ''.join(lst1)
+    cmd = cmd.upper()
+    startle = int(deal(cpu, cmd))
     for i in range(times):
         temp = (cpu.mem.read(startle, 4))
         startle += 4
@@ -191,7 +194,7 @@ def find_op(lst):
     loc = find(lst, oper)
     if loc != (-1):
         return loc
-    print("Error")
+    #print("Error")
 
 
 # 进行四则运算的函数
