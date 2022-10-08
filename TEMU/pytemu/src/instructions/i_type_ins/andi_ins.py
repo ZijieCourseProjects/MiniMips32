@@ -1,5 +1,5 @@
 from instructions.i_type_ins.IIns import I_Ins
-from src.RegList import RegList
+from RegList import RegList
 from ctypes import *
 
 

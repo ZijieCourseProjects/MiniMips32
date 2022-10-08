@@ -9,7 +9,11 @@ class bltz_ins(I_Ins):
 
     def execute(self, cpu):
         temp = self._imm << 2
-        target_offset = c_int32(0xFFFF0000 | temp).value
+        if temp & 0x8000:
+            target_offset = c_int32(0xFFFF0000 | temp).value
+        else:
+            target_offset = c_int32(temp).value
+
         if c_int32(cpu[self._rs].low32).value < 0:
             cpu[RegList.PC.value].low32 += target_offset
 
