@@ -2,6 +2,11 @@ import numpy as np
 
 
 class Memory:
+    KSEG0_BASE = 0x80000000
+    KSEG1_BASE = 0xA0000000
+
+    SEG_LENGTH = 0x1FFFFFFF
+
     COL_WIDTH = 10
     ROW_WIDTH = 10
     BANK_WIDTH = 3
@@ -21,6 +26,12 @@ class Memory:
         [('valid', np.bool_), ('row_index', np.uint32), ('buf', (np.uint8, NR_COL))])
 
     def resolve_dram_address(self, address):
+        if Memory.KSEG1_BASE <= address < Memory.KSEG1_BASE + Memory.SEG_LENGTH:
+            address -= Memory.KSEG1_BASE
+        elif Memory.KSEG0_BASE <= address < Memory.KSEG0_BASE + Memory.SEG_LENGTH:
+            address -= Memory.KSEG0_BASE
+        if address > self.HW_MEM_SIZE:
+            raise ValueError(f"Invalid memory address {address}")
         rank = address >> (self.COL_WIDTH + self.ROW_WIDTH + self.BANK_WIDTH)
         bank = (address >> (self.COL_WIDTH + self.ROW_WIDTH)) & ((1 << self.BANK_WIDTH) - 1)
         row = (address >> self.COL_WIDTH) & ((1 << self.ROW_WIDTH) - 1)
@@ -34,8 +45,6 @@ class Memory:
             rb['valid'] = np.False_
 
     def ddr3_read(self, address):
-        if address > self.HW_MEM_SIZE:
-            raise ValueError(f"Invalid memory address {address}")
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
         if not rowbuf['valid'] or rowbuf['row_index'] != row:
@@ -45,19 +54,17 @@ class Memory:
         return rowbuf['buf'][col:col + self.BURST_LEN]
 
     def ddr3_write(self, address, data, mask):
-        if address > self.HW_MEM_SIZE:
-            raise ValueError(f"Invalid memory address {address}")
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
 
-        if not rowbuf.valid or rowbuf.row_index != row:
+        if not rowbuf['valid'] or rowbuf['row_index'] != row:
             rowbuf['valid'] = np.False_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
 
         for i in range(self.BURST_LEN):
             if mask[i]:
-                rowbuf.buf[col + i] = data[i]
+                rowbuf['buf'][col + i] = data & (1 << i)
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 

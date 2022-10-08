@@ -15,7 +15,7 @@ class CPU:
     def __init__(self):
         self.__memory = Memory()
         self.__registers = [Register() for _ in range(35)]
-        self.__registers[RegList.PC.value].low32 = self.ENTRY_START & 0x1fffffff
+        self.__registers[RegList.PC.value].low32 = self.ENTRY_START
         self.__state = self.CPUState.RUNNING
 
     def stop(self):
@@ -39,7 +39,7 @@ class CPU:
         return self.__memory.read(self[RegList.PC.value].low32, 4)
 
     def load_file(self, instr_file, data_file):
-        self.__memory.load_file(instr_file, self.ENTRY_START & 0x1fffffff)
+        self.__memory.load_file(instr_file, self.ENTRY_START)
         self.__memory.load_file(data_file, 0)
 
     def step(self):
