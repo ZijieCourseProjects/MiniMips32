@@ -32,6 +32,13 @@ class Decoder:
     }
 
     IJ_TYPE_OP = {
+        0x00: jr_ins.jr_ins,
+        0x01: bgez_ins.bgez_ins,
+        0x02: j_ins.j_ins,
+        0x04: beq_ins.beq_ins,
+        0x05: bne_ins.bne_ins,
+        0x06: blez_ins.blez_ins,
+        0x07: bgtz_ins.bgtz_ins,  # 待修改，不知道他要我们写的到底是哪8条，有OP字段一样的指令
         0x0F: lui_ins.lui_ins,
         0x0D: ori_ins.ori_ins,
         0x12: trap_ins.trap_ins,
