@@ -58,13 +58,13 @@ class Memory:
         rowbuf = self.__rowbufs[rank, bank]
 
         if not rowbuf['valid'] or rowbuf['row_index'] != row:
-            rowbuf['valid'] = np.False_
+            rowbuf['valid'] = np.True_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
 
         for i in range(self.BURST_LEN):
             if mask[i]:
-                rowbuf['buf'][col + i] = data & (1 << i)
+                rowbuf['buf'][col + i] = data >> (8 * i)
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 
@@ -85,7 +85,7 @@ class Memory:
         offset = address & self.BURST_MASK
         mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
         mask[offset:offset + len] = 1
-        self.ddr3_write(address, data, mask)
+        self.ddr3_write(address, data << (8 * offset), mask)
         if offset + len > self.BURST_LEN:
             mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
             mask[0:offset + len - self.BURST_LEN] = 1
