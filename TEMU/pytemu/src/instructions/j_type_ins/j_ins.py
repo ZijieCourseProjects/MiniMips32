@@ -9,7 +9,7 @@ class j_ins(J_Ins):
 
     def execute(self, cpu):
         temp1 = cpu[RegList.PC.value].low32 & 0xF0000000
-        temp2 = self._imm << 2
+        temp2 = (self._imm << 2) - 4
         cpu[RegList.PC.value].low32 = temp1 | temp2
         self._addr = cpu[RegList.PC.value].low32
 
