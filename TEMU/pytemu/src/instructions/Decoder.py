@@ -49,8 +49,8 @@ class Decoder:
         0x0C: andi_ins.andi_ins,
         0x0E: xori_ins.xori_ins,
         0x20: lb_ins.lb_ins,
+        0x23: lw_ins.lw_ins,
         0x2B: sw_ins.sw_ins,
-
     }
 
     @staticmethod

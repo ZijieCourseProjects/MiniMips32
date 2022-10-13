@@ -31,13 +31,13 @@ if __name__ == '__main__':
             if cmd == 'r':
                 cpu.run()
             elif cmd == 's':
-                cpu.step()
+                in_print(cpu.step())
             elif cmd == 'p':
                 cpu.print_registers()
             elif cmd[0] == 'p' and len(cmd) > 2:
                 compute(cpu, cmd[1:len(cmd)])
             elif cmd[0] == 'x':
-                read_memory(cpu, cmd[2:len(cmd)])
+                in_print(read_memory(cpu, cmd[2:len(cmd)]))
             else:
                 in_print('Unknown command')
 

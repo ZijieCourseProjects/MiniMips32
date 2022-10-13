@@ -42,16 +42,27 @@ class CPU:
         self.__memory.load_file(instr_file, self.ENTRY_START)
         self.__memory.load_file(data_file, 0)
 
+    def pre_fetch(self, num):
+
+        a = ''
+        for i in range(-num, num):
+            try:
+                ins = str(Decoder.decode_instr(self.__memory.read(self[RegList.PC.value].low32 + i * 4, 4)))
+                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + f'{ins: ^30}' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + f'{ins: ^30}' + '\n'
+            except Exception:
+                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + 'Invalid Instruction' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + 'Invalid Instruction' + '\n'
+        return a
+
     def step(self):
         instruction_byte = self.fetch_instruction()
         instruction = Decoder.decode_instr(instruction_byte)
-        in_print(f'{self[32].low32:08x}' + "  " + str(instruction))
         self.execute(instruction)
         self[RegList.PC.value].low32 += 4
+        return f'{self[32].low32:08x}' + "  " + str(instruction)
 
     def run(self):
         while self.__state == self.CPUState.RUNNING:
-            self.step()
+            in_print(self.step())
 
     @property
     def mem(self):
@@ -59,6 +70,17 @@ class CPU:
 
     # print registers in two column
     def print_registers(self):
-        for i in range(0, 32, 2):
+        for i in range(0, 34, 2):
             in_print(f"${RegList(i).name} = {self[i].low32:08x} ${RegList(i + 1).name} = {self[i + 1].low32:08x}")
-        in_print(f"${RegList(32).name} = {self[32].low32:08x}")
+        in_print(f"${RegList(35).name} = {self[35].low32:08x}")
+
+    def print_registers_to_str(self):
+        a = ''
+        for i in range(0, 34, 2):
+            a += (f"${RegList(i).name: ^4} = {self[i].low32:08x} ${RegList(i + 1).name: ^4} = {self[i + 1].low32:08x}")
+            if i % 4:
+                a += '\n'
+            else:
+                a += ' '
+        a += (f"${RegList(34).name: ^4} = {self[34].low32:08x}")
+        return a

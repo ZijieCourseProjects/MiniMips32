@@ -62,9 +62,9 @@ def compute(cpu, string_deal):
         cmd = ''.join(lst1)
         cmd = cmd.upper()
         ans = deal(cpu, cmd)
-        print(ans)
+        return (ans)
     else:
-        print("parentheses Error")
+        return ("parentheses Error")
 
 
 def read_memory(cpu, cmd):
@@ -78,11 +78,12 @@ def read_memory(cpu, cmd):
     cmd = ''.join(lst1)
     cmd = cmd.upper()
     startle = int(deal(cpu, cmd))
+    res = ''
     for i in range(times):
-        temp = (cpu.mem.read(startle, 4))
+        temp = cpu.mem.read(startle, 4)
         startle += 4
-        ans = str(hex(temp))
-        print(ans + "0" * (10 - len(ans)))
+        res += f'{temp:#0{10}x}\n'
+    return res
 
 
 def deal(cpus, self):
@@ -194,7 +195,7 @@ def find_op(lst):
     loc = find(lst, oper)
     if loc != (-1):
         return loc
-    #print("Error")
+    # print("Error")
 
 
 # 进行四则运算的函数
