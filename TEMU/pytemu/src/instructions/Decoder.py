@@ -51,7 +51,12 @@ class Decoder:
         0x0C: andi_ins.andi_ins,
         0x0E: xori_ins.xori_ins,
         0x20: lb_ins.lb_ins,
+        0x21: lh_ins.lh_ins,
         0x23: lw_ins.lw_ins,
+        0x24: lbu_ins.lbu_ins,
+        0x25: lhu_ins.lhu_ins,
+        0x28: sb_ins.sb_ins,
+        0x29: sh_ins.sh_ins,
         0x2B: sw_ins.sw_ins,
     }
 
