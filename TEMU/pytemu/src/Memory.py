@@ -51,7 +51,7 @@ class Memory:
             rowbuf['valid'] = np.True_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
-        return rowbuf['buf'][col:col + self.BURST_LEN]
+        return np.copy(rowbuf['buf'][col:col + self.BURST_LEN])
 
     def ddr3_write(self, address, data, mask):
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
@@ -64,7 +64,7 @@ class Memory:
 
         for i in range(self.BURST_LEN):
             if mask[i]:
-                rowbuf['buf'][col + i] = data >> (8 * i)
+                rowbuf['buf'][col + i] = data.pop()
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 
@@ -77,7 +77,7 @@ class Memory:
         result = data[offset:offset + len]
         ans = 0
         for i in range(len):
-            ans = ans | (result[i] << (i * 8))
+            ans = ans << 8 | result[i]
 
         return ans
 
@@ -85,11 +85,15 @@ class Memory:
         offset = address & self.BURST_MASK
         mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
         mask[offset:offset + len] = 1
-        self.ddr3_write(address, data << (8 * offset), mask)
+        splited_little_edian_data = []
+        for i in range(len):
+            splited_little_edian_data.append(data & 0xFF)
+            data >>= 8
+        self.ddr3_write(address, splited_little_edian_data, mask)
         if offset + len > self.BURST_LEN:
             mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
             mask[0:offset + len - self.BURST_LEN] = 1
-            self.ddr3_write(address + self.BURST_LEN, data, mask)
+            self.ddr3_write(address + self.BURST_LEN, splited_little_edian_data, mask)
 
     def load_file(self, filepath, address):
         file = np.fromfile(filepath, dtype=np.uint8)
