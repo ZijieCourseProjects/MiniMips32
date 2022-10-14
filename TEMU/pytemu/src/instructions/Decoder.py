@@ -11,6 +11,8 @@ class Decoder:
         0x04: sllv_ins.sllv_ins,
         0x06: srlv_ins.srlv_ins,
         0x07: srav_ins.srav_ins,
+        0x08: jr_ins.jr_ins,
+        0x09: jalr_ins.jalr_ins,
         0x10: mfhi_ins.mfhi_ins,
         0x11: mthi_ins.mthi_ins,
         0x12: mflo_ins.mflo_ins,
