@@ -1,5 +1,6 @@
 from enum import Enum
 
+import Debugger
 import RegList
 from Memory import Memory
 from RegList import RegList
@@ -14,9 +15,12 @@ class CPU:
 
     def __init__(self):
         self.__memory = Memory()
-        self.__registers = [Register() for _ in range(35)]
+        self.__registers = [Register(self, i) for i in range(35)]
+        self.__golden_trace = []
         self.__registers[RegList.PC.value].low32 = self.ENTRY_START
         self.__state = self.CPUState.RUNNING
+        self.__watchpoints = {}
+        self.__watchpoint_id = 0
 
     def stop(self):
         in_print('CPU stopped!')
@@ -31,6 +35,10 @@ class CPU:
         if RegList(key) not in RegList:
             raise ValueError(f"Invalid register {key}")
         self.__registers[key] = value
+
+    def add_golden_trace(self, id, value):
+        if id != RegList.PC.value:
+            self.__golden_trace.append((self[RegList.PC.value].low32, id, value))
 
     def execute(self, instruction):
         instruction.execute(self)
@@ -58,9 +66,11 @@ class CPU:
         instruction = Decoder.decode_instr(instruction_byte)
         self.execute(instruction)
         self[RegList.PC.value].low32 += 4
+        self.check_watchpoints()
         return f'{self[32].low32:08x}' + "  " + str(instruction)
 
     def run(self):
+        self.__state = self.CPUState.RUNNING
         while self.__state == self.CPUState.RUNNING:
             in_print(self.step())
 
@@ -84,3 +94,25 @@ class CPU:
                 a += ' '
         a += (f"${RegList(34).name: ^4} = {self[34].low32:08x}")
         return a
+
+    def set_watchpoint(self, expr):
+        self.__watchpoints[self.__watchpoint_id] = (expr, Debugger.compute(self, expr))
+        self.__watchpoint_id += 1
+        return self.__watchpoint_id - 1
+
+    def check_watchpoints(self):
+        for watch_id, (expr, value) in self.__watchpoints.items():
+            if Debugger.compute(self, expr) != value:
+                self.__state = self.CPUState.STOPPED
+                in_print(f"Watchpoint {watch_id} triggered for {expr}")
+                return watch_id
+
+    def print_watchpoints(self):
+        for id, (expr, value) in self.__watchpoints.items():
+            in_print(f"Watchpoint {id} set for {expr}")
+
+    def remove_watchpoint(self, id):
+        self.__watchpoints.pop(id)
+
+    def get_golden_trace(self):
+        return self.__golden_trace

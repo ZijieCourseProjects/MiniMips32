@@ -7,8 +7,10 @@ import numpy as np
 
 
 class Register:
-    def __init__(self):
+    def __init__(self, cpu, id):
         self.__value = np.uint32(0)
+        self.__cpu = cpu
+        self.__id = id
 
     @property
     def low32(self) -> np.uint32:
@@ -17,6 +19,7 @@ class Register:
     @low32.setter
     def low32(self, value):
         self.__value = np.uint32(value)
+        self.__cpu.add_golden_trace(self.__id, value)
 
     @property
     def low16(self) -> np.uint16:
