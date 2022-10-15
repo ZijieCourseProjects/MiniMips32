@@ -11,6 +11,8 @@ class Decoder:
         0x04: sllv_ins.sllv_ins,
         0x06: srlv_ins.srlv_ins,
         0x07: srav_ins.srav_ins,
+        0x08: jr_ins.jr_ins,
+        0x09: jalr_ins.jalr_ins,
         0x10: mfhi_ins.mfhi_ins,
         0x11: mthi_ins.mthi_ins,
         0x12: mflo_ins.mflo_ins,
@@ -49,7 +51,12 @@ class Decoder:
         0x0C: andi_ins.andi_ins,
         0x0E: xori_ins.xori_ins,
         0x20: lb_ins.lb_ins,
+        0x21: lh_ins.lh_ins,
         0x23: lw_ins.lw_ins,
+        0x24: lbu_ins.lbu_ins,
+        0x25: lhu_ins.lhu_ins,
+        0x28: sb_ins.sb_ins,
+        0x29: sh_ins.sh_ins,
         0x2B: sw_ins.sw_ins,
     }
 
