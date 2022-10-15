@@ -34,10 +34,16 @@ if __name__ == '__main__':
                 in_print(cpu.step())
             elif cmd == 'p':
                 cpu.print_registers()
+            elif cmd[0] == 'w':
+                cpu.set_watchpoint(cmd[1:len(cmd)])
             elif cmd[0] == 'p' and len(cmd) > 2:
                 compute(cpu, cmd[1:len(cmd)])
+            elif cmd[0] == 'd':
+                cpu.remove_watchpoint(int(cmd[1:len(cmd)]))
             elif cmd[0] == 'x':
                 in_print(read_memory(cpu, cmd[2:len(cmd)]))
+            elif cmd == 'gold':
+                cpu.print_golden_trace()
             else:
                 in_print('Unknown command')
 
