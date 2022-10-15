@@ -1,22 +1,81 @@
 `include "defines.v"
 
 module mem_stage (
-
-    // ´ÓÖ´ÐÐ½×¶Î»ñµÃµÄÐÅÏ¢
+    input  wire                         cpu_rst_n,
+    
+    // ï¿½ï¿½Ö´ï¿½Ð½×¶Î»ï¿½Ãµï¿½ï¿½ï¿½Ï¢
     input  wire [`ALUOP_BUS     ]       mem_aluop_i,
     input  wire [`REG_ADDR_BUS  ]       mem_wa_i,
     input  wire                         mem_wreg_i,
     input  wire [`REG_BUS       ]       mem_wd_i,
-    
-    // ËÍÖÁÐ´»Ø½×¶ÎµÄÐÅÏ¢
+    input  wire                         mem_mreg_i,
+    input  wire [`REG_BUS       ]       mem_din_i,
+    input  wire                         mem_whilo_i,
+    input  wire [`DOUBLE_REG_BUS]       mem_hilo_i,
+
+    // ï¿½ï¿½ï¿½ï¿½Ð´ï¿½Ø½×¶Îµï¿½ï¿½ï¿½Ï¢
     output wire [`REG_ADDR_BUS  ]       mem_wa_o,
     output wire                         mem_wreg_o,
-    output wire [`REG_BUS       ]       mem_dreg_o
+    output wire [`REG_BUS       ]       mem_dreg_o,
+    output wire                         mem_mreg_o,
+    output wire [`BSEL_BUS      ]       dre,
+    output wire                         mem_whilo_o,
+    output wire [`DOUBLE_REG_BUS]       mem_hilo_o,
+
+    //
+    output wire                         dce,
+    output wire [`INST_ADDR_BUS ]       daddr,
+    output wire [`BSEL_BUS      ]       we,
+    output wire [`REG_BUS       ]       din
     );
 
-    // Èç¹ûµ±Ç°²»ÊÇ·Ã´æÖ¸Áî£¬ÔòÖ»ÐèÒª°Ñ´ÓÖ´ÐÐ½×¶Î»ñµÃµÄÐÅÏ¢Ö±½ÓÊä³ö
-    assign mem_wa_o     = mem_wa_i;
-    assign mem_wreg_o   = mem_wreg_i;
-    assign mem_dreg_o   = mem_wd_i;
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ç·Ã´ï¿½Ö¸ï¿½î£¬ï¿½ï¿½Ö»ï¿½ï¿½Òªï¿½Ñ´ï¿½Ö´ï¿½Ð½×¶Î»ï¿½Ãµï¿½ï¿½ï¿½Ï¢Ö±ï¿½ï¿½ï¿½ï¿½ï¿½
+    assign mem_wa_o     = (cpu_rst_n == `RST_ENABLE)?5'b0 : mem_wa_i;
+    assign mem_wreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_wreg_i;
+    assign mem_dreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_wd_i;
+    assign mem_whilo_o  = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_whilo_i;
+    assign mem_hilo_o   = (cpu_rst_n == `RST_ENABLE)?64'b0 : mem_hilo_i;
+    assign mem_mreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_mreg_i;
 
+    //
+    wire inst_lb=(mem_aluop_i == 8'h90);
+    wire inst_lw=(mem_aluop_i == 8'h92);
+    wire inst_sb=(mem_aluop_i == 8'h98);
+    wire inst_sw=(mem_aluop_i == 8'h9A);
+       
+    //
+    assign daddr  = (cpu_rst_n == `RST_ENABLE)? `ZERO_WORD : mem_wd_i;
+
+    //
+    assign dre[3] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_lb &(daddr[1:0]==2'b00))|inst_lw);
+    assign dre[2] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_lb &(daddr[1:0]==2'b01))|inst_lw);
+    assign dre[1] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_lb &(daddr[1:0]==2'b10))|inst_lw);
+    assign dre[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_lb &(daddr[1:0]==2'b11))|inst_lw);
+    
+    //
+    assign dce = (cpu_rst_n == `RST_ENABLE)? 1'b0 : (inst_lb|inst_lw|inst_sb|inst_sw);
+    
+    //
+    assign we[3] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_sb &(daddr[1:0]==2'b00))|inst_sw);
+    assign we[2] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_sb &(daddr[1:0]==2'b01))|inst_sw);
+    assign we[1] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_sb &(daddr[1:0]==2'b10))|inst_sw);
+    assign we[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+                    ((inst_sb &(daddr[1:0]==2'b11))|inst_sw); 
+    
+    //
+    wire[`WORD_BUS] din_reverse = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[23:16],mem_din_i[31:24]};
+    wire[`WORD_BUS] din_byte = {mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0]};
+    assign din = (cpu_rst_n == `RST_ENABLE)?`ZERO_WORD:
+                 (we == 4'b1111 )?din_reverse:
+                 (we == 4'b1000 )?din_byte:
+                 (we == 4'b0100 )?din_byte:
+                 (we == 4'b0010 )?din_byte:
+                 (we == 4'b0001 )?din_byte:`ZERO_WORD;
 endmodule
