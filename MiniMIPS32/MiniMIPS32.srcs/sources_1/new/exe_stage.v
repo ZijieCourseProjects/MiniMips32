@@ -1,6 +1,7 @@
 `include "defines.v"
 
 module exe_stage (
+    input wire                       cpu_rst_n,
     // 从译码阶段获得的信息
     input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,
     input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,

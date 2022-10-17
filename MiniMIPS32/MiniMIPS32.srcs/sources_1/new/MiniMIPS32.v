@@ -18,10 +18,10 @@ module MiniMIPS32(
 
     wire [`WORD_BUS      ] pc;
 
-    // 连接IF/ID模块与译码阶段ID模块的变量 
+    // 连接IF/ID模块与译码阶段ID模块的变�? 
     wire [`WORD_BUS      ] id_pc_i;
     
-    // 连接译码阶段ID模块与通用寄存器Regfile模块的变量 
+    // 连接译码阶段ID模块与�?�用寄存器Regfile模块的变�? 
     wire 				   re1;
     wire [`REG_ADDR_BUS  ] ra1;
     wire [`REG_BUS       ] rd1;
@@ -105,8 +105,7 @@ module MiniMIPS32(
     id_stage id_stage0(.id_pc_i(id_pc_i), 
         .cpu_rst_n(cpu_rst_n),
         .id_inst_i(inst),
-        .rd1(rd1), .rd2(rd2),
-        .rreg1(re1), .rreg2(re2), 	  
+        .rd1(rd1), .rd2(rd2),	  
         .ra1(ra1), .ra2(ra2), 
         .id_aluop_o(id_aluop_o), .id_alutype_o(id_alutype_o),
         .id_src1_o(id_src1_o), .id_src2_o(id_src2_o),
