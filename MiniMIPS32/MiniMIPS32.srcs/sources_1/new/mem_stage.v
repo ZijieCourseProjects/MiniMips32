@@ -1,7 +1,7 @@
 `include "defines.v"
 
-module mem_stage (
-    input  wire                         cpu_rst_n,
+ module mem_stage (
+    input  wire                         cpu_rst_n,  
     
     // 从执行阶段获得的信息
     input  wire [`ALUOP_BUS     ]       mem_aluop_i,
@@ -13,7 +13,7 @@ module mem_stage (
     input  wire                         mem_whilo_i,
     input  wire [`DOUBLE_REG_BUS]       mem_hilo_i,
 
-    // 送至写回阶段的信息
+    // 送至写回阶段的信�?
     output wire [`REG_ADDR_BUS  ]       mem_wa_o,
     output wire                         mem_wreg_o,
     output wire [`REG_BUS       ]       mem_dreg_o,
@@ -37,7 +37,7 @@ module mem_stage (
     assign mem_hilo_o   = (cpu_rst_n == `RST_ENABLE)?64'b0 : mem_hilo_i;
     assign mem_mreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_mreg_i;
 
-    // 确定当前的访存指令
+    // 确定当前的访存指�?
     wire inst_lb=(mem_aluop_i == 8'h90);
     wire inst_lw=(mem_aluop_i == 8'h92);
     wire inst_sb=(mem_aluop_i == 8'h98);
@@ -56,7 +56,7 @@ module mem_stage (
     assign dre[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
                     ((inst_lb &(daddr[1:0]==2'b11))|inst_lw);
     
-    // 获得数据存储器使能信号
+    // 获得数据存储器使能信�?
     assign dce = (cpu_rst_n == `RST_ENABLE)? 1'b0 : (inst_lb|inst_lw|inst_sb|inst_sw);
     
     // 获得数据存储器写字节使能信号
@@ -69,7 +69,7 @@ module mem_stage (
     assign we[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
                     ((inst_sb &(daddr[1:0]==2'b11))|inst_sw); 
     
-    // 确定待写入数据存储器的数据
+    // 确定待写入数据存储器的数�?
     wire[`WORD_BUS] din_reverse = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[23:16],mem_din_i[31:24]};
     wire[`WORD_BUS] din_byte = {mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0]};
     assign din = (cpu_rst_n == `RST_ENABLE)?`ZERO_WORD:

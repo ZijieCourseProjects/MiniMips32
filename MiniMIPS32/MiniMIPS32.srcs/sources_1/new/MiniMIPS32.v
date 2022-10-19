@@ -22,10 +22,8 @@ module MiniMIPS32(
     wire [`WORD_BUS      ] id_pc_i;
     
     // 连接译码阶段ID模块与�?�用寄存器Regfile模块的变�? 
-    wire 				   re1;
     wire [`REG_ADDR_BUS  ] ra1;
     wire [`REG_BUS       ] rd1;
-    wire 				   re2;
     wire [`REG_ADDR_BUS  ] ra2;
     wire [`REG_BUS       ] rd2;
     
@@ -116,8 +114,8 @@ module MiniMIPS32(
     
     regfile regfile0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .we(wb_wreg_o), .wa(wb_wa_o), .wd(wb_wd_o),
-        .re1(re1), .ra1(ra1), .rd1(rd1),
-        .re2(re2), .ra2(ra2), .rd2(rd2)
+        .ra1(ra1), .rd1(rd1),
+        .ra2(ra2), .rd2(rd2)
     );
     
     idexe_reg idexe_reg0(
