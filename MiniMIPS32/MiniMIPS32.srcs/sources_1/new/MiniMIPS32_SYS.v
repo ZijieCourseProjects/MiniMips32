@@ -10,7 +10,7 @@ module MiniMIPS32_SYS(
     wire [`INST_ADDR_BUS] iaddr;
     wire                  ice;
     wire [`INST_BUS     ] inst;
-    wire dce;
+    wire                 dce;
     wire[`INST_ADDR_BUS] daddr;
     wire[`BSEL_BUS]      we;
     wire[`INST_BUS]      din;
@@ -37,7 +37,12 @@ module MiniMIPS32_SYS(
         .cpu_rst_n(sys_rst_n),
         .iaddr(iaddr),
         .ice(ice),
-        .inst(inst)
+        .inst(inst),
+        .dce(dce),
+        .daddr(daddr),
+        .we(we),
+        .din(din),
+        .dm(dout)
     );
    
    data_ram data_ram0(

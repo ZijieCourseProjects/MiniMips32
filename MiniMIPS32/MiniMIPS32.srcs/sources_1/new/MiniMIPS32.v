@@ -33,7 +33,7 @@ module MiniMIPS32(
     wire [`REG_BUS 	     ] id_src2_o;
     wire 				   id_wreg_o;
     wire [`REG_ADDR_BUS  ] id_wa_o;
-    wire                   id_whilo_o;
+    wire [`WE_HILO]        id_whilo_o;
     wire                   id_mreg_o;
     wire [`REG_BUS]        id_din_o;
 
@@ -43,7 +43,7 @@ module MiniMIPS32(
     wire [`REG_BUS 	     ] exe_src2_i;
     wire 				   exe_wreg_i;
     wire [`REG_ADDR_BUS  ] exe_wa_i;
-    wire                   exe_whilo_i;
+    wire [`WE_HILO]        exe_whilo_i;
     wire                   exe_mreg_i;
     wire [`REG_BUS]        exe_din_i;
 
@@ -57,7 +57,7 @@ module MiniMIPS32(
     wire [`REG_BUS 	     ] exe_wd_o;
     wire                   exe_mreg_o;
     wire [`REG_BUS       ] exe_din_o;
-    wire                   exe_whilo_o;
+    wire [`WE_HILO]        exe_whilo_o;
     wire [`DOUBLE_REG_BUS] exe_hilo_o;
 
     wire [`ALUOP_BUS     ] mem_aluop_i;
@@ -66,7 +66,7 @@ module MiniMIPS32(
     wire [`REG_BUS 	     ] mem_wd_i;
     wire                   mem_mreg_i;
     wire [`REG_BUS       ] mem_din_i;
-    wire                   mem_whilo_i;
+    wire [`WE_HILO]        mem_whilo_i;
     wire [`DOUBLE_REG_BUS] mem_hilo_i;
 
     wire 				   mem_wreg_o;
@@ -74,8 +74,9 @@ module MiniMIPS32(
     wire [`REG_BUS 	     ] mem_dreg_o;
     wire                   mem_mreg_o;
     wire [`REG_BUS       ] mem_dre_o;
-    wire                   mem_whilo_o;
+    wire [`WE_HILO]        mem_whilo_o;
     wire [`DOUBLE_REG_BUS] mem_hilo_o;
+    wire [`ALUOP_BUS     ]       mem_aluop_o;
 
 
     wire 				   wb_wreg_i;
@@ -83,14 +84,15 @@ module MiniMIPS32(
     wire [`REG_BUS       ] wb_dreg_i;
     wire [`BSEL_BUS]       wb_dre_i;
     wire                   wb_mreg_i;
-    wire                   wb_whilo_i;
+    wire [`WE_HILO]        wb_whilo_i;
     wire [`DOUBLE_REG_BUS] wb_hilo_i;
+    wire [`ALUOP_BUS     ]   wb_aluop_i;
 
     wire 				   wb_wreg_o;
     wire [`REG_ADDR_BUS  ] wb_wa_o;
     wire [`REG_BUS       ] wb_wd_o;
 
-    wire                   wb_whilo_o;
+    wire [`WE_HILO]        wb_whilo_o;
     wire [`DOUBLE_REG_BUS] wb_hilo_o;
 
     if_stage if_stage0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
@@ -135,7 +137,7 @@ module MiniMIPS32(
         .exe_alutype_i(exe_alutype_i), .exe_aluop_i(exe_aluop_i),
         .exe_src1_i(exe_src1_i), .exe_src2_i(exe_src2_i),
         .exe_wa_i(exe_wa_i), .exe_wreg_i(exe_wreg_i),
-        .exe_mreg_i(exe_mreg_i),.exe_din_i(exe_whilo_i),
+        .exe_mreg_i(exe_mreg_i),.exe_din_i(exe_din_i),
         .hi_i(exe_hi_i),.lo_i(exe_lo_i),.exe_whilo_i(exe_whilo_i),
         .exe_aluop_o(exe_aluop_o),
         .exe_wa_o(exe_wa_o), .exe_wreg_o(exe_wreg_o), .exe_wd_o(exe_wd_o),
@@ -162,23 +164,24 @@ module MiniMIPS32(
         .mem_wa_o(mem_wa_o), .mem_wreg_o(mem_wreg_o), .mem_dreg_o(mem_dreg_o),
         .mem_mreg_o(mem_mreg_o),.dre(mem_dre_o),
         .mem_whilo_o(mem_whilo_o),.mem_hilo_o(mem_hilo_o),
-        .dce(dce),.daddr(daddr),.we(we),.din(din)
+        .dce(dce),.daddr(daddr),.we(we),.din(din),
+        .mem_aluop_o(mem_aluop_o)
     );
     	
     memwb_reg memwb_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .mem_wa(mem_wa_o), .mem_wreg(mem_wreg_o), .mem_dreg(mem_dreg_o),
         .mem_mreg(mem_mreg_o),.mem_dre(mem_dre_o),
-        .mem_whilo(mem_whilo_o),.mem_hilo(mem_hilo_o),
+        .mem_whilo(mem_whilo_o),.mem_hilo(mem_hilo_o),.mem_aluop(mem_aluop_o),
         .wb_wa(wb_wa_i), .wb_wreg(wb_wreg_i), .wb_dreg(wb_dreg_i),
         .wb_mreg(wb_mreg_i),.wb_dre(wb_dre_i),
-        .wb_whilo(wb_whilo_i),.wb_hilo(wb_hilo_i)
+        .wb_whilo(wb_whilo_i),.wb_hilo(wb_hilo_i),.wb_aluop( wb_aluop_i)
     );
 
     wb_stage wb_stage0(
         .cpu_rst_n(cpu_rst_n),
         .wb_mreg_i(wb_mreg_i),.wb_dre_i(wb_dre_i),
         .wb_wa_i(wb_wa_i), .wb_wreg_i(wb_wreg_i), .wb_dreg_i(wb_dreg_i), 
-        .wb_whilo_i(wb_whilo_i),.wb_hilo_i(wb_hilo_i),
+        .wb_whilo_i(wb_whilo_i),.wb_hilo_i(wb_hilo_i),.wb_aluop_i( wb_aluop_i),
         .dm(dm),
         .wb_wa_o(wb_wa_o), .wb_wreg_o(wb_wreg_o), .wb_wd_o(wb_wd_o),
         .wb_whilo_o(wb_whilo_o),.wb_hilo_o(wb_hilo_o)
