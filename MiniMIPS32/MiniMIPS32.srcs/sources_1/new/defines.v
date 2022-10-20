@@ -42,10 +42,16 @@
 `define MINIMIPS32_MFHI            8'h0C
 `define MINIMIPS32_MFLO            8'h0D
 `define MINIMIPS32_SLL             8'h11
+`define MINIMIPS32_SRAV            8'h12
+`define MINIMIPS32_SRA             8'h13
 `define MINIMIPS32_MULT            8'h14
+`define MINIMIPS32_MULTU           8'h15
+`define MINIMIPS32_ADDU            8'h17   //自己加的
 `define MINIMIPS32_ADD             8'h18
 `define MINIMIPS32_ADDIU           8'h19
+`define MINIMIPS32_ADDI            8'h1A   //自己加的
 `define MINIMIPS32_SUBU            8'h1B
+`define  MINIMIPS32_SUB            8'h1E
 `define MINIMIPS32_AND             8'h1C
 `define MINIMIPS32_ORI             8'h1D
 `define MINIMIPS32_SLT             8'h26

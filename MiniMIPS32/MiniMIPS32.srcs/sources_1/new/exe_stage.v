@@ -1,9 +1,10 @@
 `include "defines.v"
 
 module exe_stage (
+    input wire                       cpu_rst_n,
     // 从译码阶段获得的信息
-    input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,
-    input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,
+    input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,  //3位
+    input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,    //8位
     input  wire [`REG_BUS 		] 	exe_src1_i,
     input  wire [`REG_BUS 		] 	exe_src2_i,
     input  wire [`REG_ADDR_BUS 	] 	exe_wa_i,
@@ -40,7 +41,7 @@ module exe_stage (
     wire [`REG_BUS       ]      lo_t;           //保存LO寄存器的最新值
     wire [`REG_BUS       ]      arithres;       //保存算数操作的结果
     wire [`REG_BUS       ]      memres;         //保存访存操作地址
-    wire [`REG_BUS       ]      mulres;         //保存乘法操作的结果
+    wire [`DOUBLE_REG_BUS       ]      mulres;         //保存乘法操作的结果
           
     // 根据内部操作码aluop进行逻辑运算
     assign logicres = (exe_aluop_i ==`MINIMIPS32_AND)? (exe_src1_i & exe_src2_i):
@@ -48,8 +49,9 @@ module exe_stage (
                         (exe_aluop_i ==`MINIMIPS32_LUI)? exe_src2_i :`ZERO_WORD;
     
     //根据内部操作码aluop进行移位运算
-    assign shiftres = (exe_aluop_i ==`MINIMIPS32_SLL) ? (exe_src2_i <<exe_src1_i) :`ZERO_WORD;
-    
+    assign shiftres = (exe_aluop_i ==`MINIMIPS32_SLL) ? (exe_src2_i <<exe_src1_i) :
+                      (exe_aluop_i ==`MINIMIPS32_SRA) ? (exe_src2_i >>>exe_src1_i):
+                      (exe_aluop_i ==`MINIMIPS32_SRAV)? (exe_src2_i >>>exe_src1_i):`ZERO_WORD;
     //根据内部操作码aluop进行数据移动，得到最新的HI、LO寄存器的值
     assign hi_t = hi_i;
     assign lo_t =lo_i;
@@ -64,10 +66,15 @@ module exe_stage (
                        (exe_aluop_i ==`MINIMIPS32_ADDIU) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_SUBU) ? (exe_src1_i+(~exe_src2_i)+1):
                        (exe_aluop_i ==`MINIMIPS32_SLT) ? (($signed(exe_src1_i) <$signed(exe_src2_i))? 32'b1:32'b0):
-                       (exe_aluop_i ==`MINIMIPS32_SLTIU) ? ((exe_src1_i <exe_src2_i)? 32'b1:32'b0):`ZERO_WORD;
+                       (exe_aluop_i ==`MINIMIPS32_SLTIU) ? ((exe_src1_i <exe_src2_i)? 32'b1:32'b0):
+                       (exe_aluop_i ==`MINIMIPS32_ADDU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_ADDI) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SUB)  ?  (exe_src1_i-exe_src2_i):`ZERO_WORD;
+                       
    
       //根据内部操作码aluop进行乘法运算，并保存送至下一阶段
-      assign mulres =($signed(exe_src1_i) * $signed(exe_src2_i));
+      assign mulres =(exe_aluop_i ==`MINIMIPS32_MULT) ?($signed(exe_src1_i) * $signed(exe_src2_i)):
+                                                        (exe_src1_i * exe_src2_i);
       assign exe_hilo_o = (exe_aluop_i ==`MINIMIPS32_MULT) ? mulres :`ZERO_DWORD;
       assign exe_wa_o =exe_wa_i;
       assign exe_wreg_o = exe_wreg_i;
