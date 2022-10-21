@@ -39,3 +39,67 @@ class Register:
 
     def __str__(self):
         return str(self.__value)
+
+
+class StatusRegister(Register):
+
+    @property
+    def ie(self) -> bool:
+        return bool(self.low32 & 1)
+
+    @ie.setter
+    def ie(self, value):
+        if value:
+            self.low32 |= 1
+        else:
+            self.low32 &= ~1
+
+    @property
+    def exl(self) -> bool:
+        return bool(self.low32 & 2)
+
+    @exl.setter
+    def exl(self, value):
+        if value:
+            self.low32 |= 2
+        else:
+            self.low32 &= 0xFFFFFFFD
+
+    def im(self, no):
+        return bool(self.low32 & (1 << (8 + no)))
+
+    def set_im(self, no, value):
+        if value:
+            self.low32 |= (1 << (8 + no))
+        else:
+            self.low32 &= ~(1 << (8 + no))
+
+
+class Cause(Register):
+    @property
+    def exc_code(self) -> np.uint8:
+        return np.uint8(self.low32 & 0x7C)
+
+    @exc_code.setter
+    def exc_code(self, value):
+        self.low32 = (self.low32 & 0xFFFFFF83) | (np.uint8(value) << 2)
+
+    @property
+    def bd(self) -> bool:
+        return bool(self.low32 & 0x80000000)
+
+    @bd.setter
+    def bd(self, value):
+        if value:
+            self.low32 |= 0x80000000
+        else:
+            self.low32 &= 0x7FFFFFFF
+
+    def ip(self, no):
+        return bool(self.low32 & (1 << (8 + no)))
+
+    def set_ip(self, no, value):
+        if value:
+            self.low32 |= (1 << (8 + no))
+        else:
+            self.low32 &= ~(1 << (8 + no))

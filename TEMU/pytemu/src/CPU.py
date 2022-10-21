@@ -4,7 +4,7 @@ import Debugger
 import RegList
 from Memory import Memory
 from RegList import RegList
-from Register import Register
+from Register import Register, StatusRegister, Cause
 from instructions.Decoder import Decoder
 from util import in_print
 
@@ -16,6 +16,8 @@ class CPU:
     def __init__(self):
         self.__memory = Memory()
         self.__registers = [Register(self, i) for i in range(35)]
+        self.__cp0 = {RegList.STATUS: StatusRegister(self, RegList.STATUS.value),
+                      RegList.EPC: Register(self, RegList.EPC.value), RegList.CAUSE: Cause(self, RegList.CAUSE.value)}
         self.__golden_trace = []
         self.__registers[RegList.PC.value].low32 = self.ENTRY_START
         self.__state = self.CPUState.RUNNING
@@ -56,18 +58,20 @@ class CPU:
         for i in range(-num, num):
             try:
                 ins = str(Decoder.decode_instr(self.__memory.read(self[RegList.PC.value].low32 + i * 4, 4)))
-                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + f'{ins: ^30}' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + f'{ins: ^30}' + '\n'
+                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + f'{ins: ^30}' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + f'{ins: ^30}' + '\n '
             except Exception:
                 a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + 'Invalid Instruction' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + 'Invalid Instruction' + '\n'
         return a
 
     def step(self):
+        current_pc = self[RegList.PC.value].low32
         instruction_byte = self.fetch_instruction()
         instruction = Decoder.decode_instr(instruction_byte)
         self.execute(instruction)
-        self[RegList.PC.value].low32 += 4
+        if not self.check_intterupt():
+            self[RegList.PC.value].low32 += 4
         self.check_watchpoints()
-        return f'{self[32].low32:08x}' + "  " + str(instruction)
+        return f'{current_pc:08x}' + "  " + str(instruction)
 
     def run(self):
         self.__state = self.CPUState.RUNNING
@@ -77,6 +81,30 @@ class CPU:
     @property
     def mem(self):
         return self.__memory
+
+    @property
+    def cp0(self):
+        return self.__cp0
+
+    def raise_exption(self, exec_code):
+        if not self.cp0[RegList.STATUS].exl:
+            self.cp0[RegList.EPC].low32 = self[RegList.PC.value].low32
+            self.cp0[RegList.STATUS].exl = True
+            self.cp0[RegList.CAUSE].bd = False
+            self.cp0[RegList.CAUSE].exc_code = exec_code
+            self[RegList.PC.value].low32 = 0xBFC00380 - 4
+
+    def check_intterupt(self):
+        if self.cp0[RegList.STATUS].exl or not self.cp0[RegList.STATUS].ie:
+            return
+        for no in range(8):
+            if not self.cp0[RegList.STATUS].im(no):
+                continue
+            if self.cp0[RegList.STATUS].ip(no):
+                self.cp0[RegList.EPC] = self[RegList.PC.value].low32
+                self[RegList.PC.value].low32 = 0xBFC00380
+                return True
+        return False
 
     # print registers in two column
     def print_registers(self):

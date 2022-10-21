@@ -64,7 +64,7 @@ class Memory:
 
         for i in range(self.BURST_LEN):
             if mask[i]:
-                rowbuf['buf'][col + i] = data.pop()
+                rowbuf['buf'][col + i] = data.pop(0)
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 
@@ -76,7 +76,7 @@ class Memory:
 
         result = data[offset:offset + len]
         ans = 0
-        for i in range(len):
+        for i in range(len - 1, -1, -1):
             ans = ans << 8 | result[i]
 
         return ans

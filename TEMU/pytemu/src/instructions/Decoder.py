@@ -1,6 +1,7 @@
 from instructions.i_type_ins import *
 from instructions.j_type_ins import *
 from instructions.r_type_ins import *
+from instructions.pr_ins import *
 
 
 class Decoder:
@@ -13,6 +14,7 @@ class Decoder:
         0x07: srav_ins.srav_ins,
         0x08: jr_ins.jr_ins,
         0x09: jalr_ins.jalr_ins,
+        0x0D: break_ins.break_ins,
         0x10: mfhi_ins.mfhi_ins,
         0x11: mthi_ins.mthi_ins,
         0x12: mflo_ins.mflo_ins,
@@ -65,10 +67,22 @@ class Decoder:
         return Decoder.R_TYPE_FUNC[instr & 0x3f](instr)
 
     @staticmethod
+    def decode_privileged(instr):
+        if instr & (1 << 25):
+            return eret_ins.eret_ins(instr)
+        elif (instr >> 21) & 0x1f == 0:
+            return mfc0_ins.mfc0_ins(instr)
+        elif (instr >> 21) & 0x1f == 4:
+            return mtc0_ins.mtc0_ins(instr)
+        raise Exception(f"Unknown instruction: {hex(instr)}")
+
+    @staticmethod
     def decode_instr(instr):
         try:
             if instr >> 26 == 0:
                 return Decoder.decode_r_type(instr)
+            elif instr >> 26 == 0x10:
+                return Decoder.decode_privileged(instr)
             else:
                 return Decoder.IJ_TYPE_OP[instr >> 26](instr)
         except KeyError:
