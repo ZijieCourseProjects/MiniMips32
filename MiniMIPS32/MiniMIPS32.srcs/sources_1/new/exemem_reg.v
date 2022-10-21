@@ -11,7 +11,7 @@ module exemem_reg (
     input  wire [`REG_BUS 	  ] exe_wd,
     input  wire                exe_mreg,
     input  wire [`REG_BUS]    exe_din,
-    input  wire                exe_whilo,
+    input  wire [`WE_HILO]        exe_whilo,
     input  wire [`DOUBLE_REG_BUS]  exe_hilo,
     
     // 送到访存阶段的信息 
@@ -21,7 +21,7 @@ module exemem_reg (
     output reg  [`REG_BUS 	  ]      mem_wd,
     output reg                      mem_mreg,
     output reg  [`REG_BUS]         mem_din,
-    output reg                      mem_whilo,
+    output reg  [`WE_HILO]         mem_whilo,
     output reg  [`DOUBLE_REG_BUS]  mem_hilo
     );
 

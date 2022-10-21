@@ -11,7 +11,7 @@ module exe_stage (
     input  wire 					exe_wreg_i,
     input  wire                    exe_mreg_i,
     input  wire [`REG_BUS]        exe_din_i,
-    input  wire                    exe_whilo_i,
+    input  wire [`WE_HILO]        exe_whilo_i,
     
     //从HILO寄存获得的数据
     input  wire[`REG_BUS]         hi_i,
@@ -24,7 +24,7 @@ module exe_stage (
     output wire [`REG_BUS 		] 	exe_wd_o,
     output wire                    exe_mreg_o,
     output wire [`REG_BUS]        exe_din_o,
-    output wire                    exe_whilo_o,
+    output wire [`WE_HILO]        exe_whilo_o,
     output wire [`DOUBLE_REG_BUS] exe_hilo_o
     );
 
@@ -61,7 +61,11 @@ module exe_stage (
     assign arithres = (exe_aluop_i ==`MINIMIPS32_ADD) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_LB) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_LW) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LBU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LH) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LHU) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_SB) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SH) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_SW) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_ADDIU) ? (exe_src1_i+exe_src2_i):
                        (exe_aluop_i ==`MINIMIPS32_SUBU) ? (exe_src1_i+(~exe_src2_i)+1):
@@ -74,8 +78,13 @@ module exe_stage (
    
       //根据内部操作码aluop进行乘法运算，并保存送至下一阶段
       assign mulres =(exe_aluop_i ==`MINIMIPS32_MULT) ?($signed(exe_src1_i) * $signed(exe_src2_i)):
-                                                        (exe_src1_i * exe_src2_i);
-      assign exe_hilo_o = (exe_aluop_i ==`MINIMIPS32_MULT) ? mulres :`ZERO_DWORD;
+                     (exe_aluop_i ==`MINIMIPS32_MULTU) ?(exe_src1_i * exe_src2_i):
+                     (exe_aluop_i ==`MINIMIPS32_MTHI) ? ({exe_src1_i,32'b0}):
+                      (exe_aluop_i ==`MINIMIPS32_MTLO) ? ({32'b0,exe_src1_i}):`ZERO_DWORD;
+      assign exe_hilo_o = (exe_aluop_i ==`MINIMIPS32_MULT ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MULTU ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MTHI ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MTLO ) ? mulres :`ZERO_DWORD;
       assign exe_wa_o =exe_wa_i;
       assign exe_wreg_o = exe_wreg_i;
     

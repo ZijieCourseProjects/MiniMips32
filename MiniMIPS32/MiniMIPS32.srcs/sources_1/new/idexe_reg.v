@@ -13,7 +13,7 @@ module idexe_reg (
     input  wire                     id_wreg,
     input  wire                     id_mreg,
     input  wire [`REG_BUS]         id_din,
-    input  wire                     id_whilo, 
+    input  wire [`WE_HILO]         id_whilo, 
     
     // 送至执行阶段的信息
     output reg  [`ALUTYPE_BUS  ]  exe_alutype,
@@ -24,7 +24,7 @@ module idexe_reg (
     output reg                    exe_wreg,
     output reg                    exe_mreg,
     output reg  [`REG_BUS]       exe_din,
-    output reg                    exe_whilo
+    output reg  [`WE_HILO]       exe_whilo
     );
 
     always @(posedge cpu_clk_50M) begin
