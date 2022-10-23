@@ -14,6 +14,7 @@ class Decoder:
         0x07: srav_ins.srav_ins,
         0x08: jr_ins.jr_ins,
         0x09: jalr_ins.jalr_ins,
+        0x0C: syscall_ins.syscall_ins,
         0x0D: break_ins.break_ins,
         0x10: mfhi_ins.mfhi_ins,
         0x11: mthi_ins.mthi_ins,
