@@ -98,6 +98,9 @@ class MainWindow(QMainWindow):
         elif input_text[0] == 'd':
             self.cpu.remove_watchpoint(int(input_text[1:len(input_text)]))
             result = f"Watchpoint{input_text[1:len(input_text)]} removed"
+        elif input_text == 'gold':
+            self.export_golden_trace()
+            result = "Golden trace exported to golden_trace.txt"
         else:
             result = "Invalid command"
         self.console_print(f"output[{self.__eval_id}]:  {result}\n")
@@ -150,6 +153,12 @@ class MainWindow(QMainWindow):
         self.ui.STATUS.setText("STATUS: " + hex(cp0[RegList.STATUS].low32))
         self.ui.HI.setText("HI: " + hex(registers[RegList.HI].low32))
         self.ui.LO.setText("LO: " + hex(registers[RegList.LO].low32))
+
+    def export_golden_trace(self):
+        golden_trace = self.cpu.get_golden_trace()
+        with open("golden_trace.txt", "w") as f:
+            for pc, regid, value in golden_trace:
+                f.write(f"{pc:#0{10}x} {regid:02} {value: #0{10}x}\n")
 
     def reset_pressed(self):
         self.cpu.reset()
