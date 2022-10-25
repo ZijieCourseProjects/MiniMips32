@@ -19,7 +19,7 @@ LD := $(CROSS_COMPILE)ld
 OBJCOPY := $(CROSS_COMPILE)objcopy
 OBJDUMP := $(CROSS_COMPILE)objdump
 
-CFLAGS := -mips1 -EL
+CFLAGS := -mips32 -EL
 
 ifeq ($(DEBUG), true)
 CFLAGS += -g
