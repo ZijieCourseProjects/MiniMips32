@@ -87,4 +87,4 @@ class Decoder:
             else:
                 return Decoder.IJ_TYPE_OP[instr >> 26](instr)
         except KeyError:
-            raise Exception(f"Unknown instruction: {hex(instr)}")
+            return None

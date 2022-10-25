@@ -33,6 +33,8 @@ class InstrDisp(QLabel):
 
     def reset_style(self):
         self.setStyleSheet("background-color: #000000; color: #ffffff;border: 1px solid #000000;")
+        if self.cpu[RegList.PC.value].low32 == self.address:
+            self.red()
         if self.have_breakpoint:
             self.add_broder()
 

@@ -1,6 +1,7 @@
 from enum import Enum
 
 import Debugger
+import ExcCode
 import RegList
 from Memory import Memory
 from RegList import RegList
@@ -84,11 +85,23 @@ class CPU:
     def step(self):
         self.__state = self.CPUState.RUNNING
         current_pc = self[RegList.PC.value].low32
+        if current_pc & 0x3 != 0:
+            self.raise_exption(ExcCode.ExcCode.ADEL)
+            return f'PC is not aligned to 4 bytes: {hex(current_pc)}'
+
         instruction_byte = self.fetch_instruction()
+
         instruction = Decoder.decode_instr(instruction_byte)
+
+        if instruction == None:
+            self.raise_exption(ExcCode.ExcCode.RI)
+            return f'Invalid instruction: {hex(instruction_byte)}'
+
         self.execute(instruction)
+
         if not self.check_intterupt() and not self.__state == self.CPUState.STOPPED:
             self[RegList.PC.value].low32 += 4
+
         self.check_watchpoints()
         return f'{current_pc:08x}' + "  " + str(instruction)
 
