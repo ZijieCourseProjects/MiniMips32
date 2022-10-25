@@ -11,4 +11,4 @@ class mtc0_ins(Instruction):
         cpu.cp0[self.__rd + 40].low32 = cpu[self.__rt].low32
 
     def __str__(self):
-        return f"mtc0 {RegList(self.__rt).name}, {RegList(self.__rd).name}"
+        return f"mtc0 {RegList(self.__rt).name}, {RegList(self.__rd + 40).name}"
