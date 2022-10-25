@@ -113,3 +113,4 @@ class Memory:
                         rank_idx += 1
                         if rank_idx == self.NR_RANK:
                             rank_idx = 0
+        return len(file)

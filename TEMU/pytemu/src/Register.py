@@ -12,6 +12,9 @@ class Register:
         self.__cpu = cpu
         self.__id = id
 
+    def reset(self):
+        self.__value = np.uint32(0)
+
     @property
     def low32(self) -> np.uint32:
         return self.__value

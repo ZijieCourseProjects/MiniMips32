@@ -1,6 +1,7 @@
 from instructions.i_type_ins import *
 from instructions.j_type_ins import *
 from instructions.r_type_ins import *
+from instructions.nop_ins import nop_ins
 from instructions.pr_ins import *
 
 
@@ -80,6 +81,8 @@ class Decoder:
     @staticmethod
     def decode_instr(instr):
         try:
+            if instr == 0:
+                return nop_ins(instr)
             if instr >> 26 == 0:
                 return Decoder.decode_r_type(instr)
             elif instr >> 26 == 0x10:
@@ -87,4 +90,4 @@ class Decoder:
             else:
                 return Decoder.IJ_TYPE_OP[instr >> 26](instr)
         except KeyError:
-            raise Exception(f"Unknown instruction: {hex(instr)}")
+            return None

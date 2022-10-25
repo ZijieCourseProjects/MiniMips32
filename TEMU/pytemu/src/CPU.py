@@ -1,6 +1,7 @@
 from enum import Enum
 
 import Debugger
+import ExcCode
 import RegList
 from Memory import Memory
 from RegList import RegList
@@ -22,7 +23,25 @@ class CPU:
         self.__registers[RegList.PC.value].low32 = self.ENTRY_START
         self.__state = self.CPUState.RUNNING
         self.__watchpoints = {}
+        self.__instrs = {}
         self.__watchpoint_id = 0
+
+    @property
+    def instrs(self):
+        return self.__instrs
+
+    def fetch_all_instruction(self):
+        for i in range(self.__instr_count):
+            self.__instrs[self.ENTRY_START + 4 * i] = Decoder.decode_instr(
+                self.__memory.read(self.ENTRY_START + i * 4, 4))
+
+    def reset(self):
+        for reg in self.__registers:
+            reg.reset()
+        for index, reg in self.__cp0.items():
+            reg.reset()
+
+        self[RegList.PC.value].low32 = self.ENTRY_START
 
     def stop(self):
         in_print('CPU stopped!')
@@ -49,7 +68,7 @@ class CPU:
         return self.__memory.read(self[RegList.PC.value].low32, 4)
 
     def load_file(self, instr_file, data_file):
-        self.__memory.load_file(instr_file, self.ENTRY_START)
+        self.__instr_count = int(self.__memory.load_file(instr_file, self.ENTRY_START) / 4)
         self.__memory.load_file(data_file, 0)
 
     def pre_fetch(self, num):
@@ -64,12 +83,25 @@ class CPU:
         return a
 
     def step(self):
+        self.__state = self.CPUState.RUNNING
         current_pc = self[RegList.PC.value].low32
+        if current_pc & 0x3 != 0:
+            self.raise_exption(ExcCode.ExcCode.ADEL)
+            return f'PC is not aligned to 4 bytes: {hex(current_pc)}'
+
         instruction_byte = self.fetch_instruction()
+
         instruction = Decoder.decode_instr(instruction_byte)
+
+        if instruction == None:
+            self.raise_exption(ExcCode.ExcCode.RI)
+            return f'Invalid instruction: {hex(instruction_byte)}'
+
         self.execute(instruction)
-        if not self.check_intterupt():
+
+        if not self.check_intterupt() and not self.__state == self.CPUState.STOPPED:
             self[RegList.PC.value].low32 += 4
+
         self.check_watchpoints()
         return f'{current_pc:08x}' + "  " + str(instruction)
 
@@ -112,16 +144,8 @@ class CPU:
             in_print(f"${RegList(i).name} = {self[i].low32:08x} ${RegList(i + 1).name} = {self[i + 1].low32:08x}")
         in_print(f"${RegList(35).name} = {self[35].low32:08x}")
 
-    def print_registers_to_str(self):
-        a = ''
-        for i in range(0, 34, 2):
-            a += (f"${RegList(i).name: ^4} = {self[i].low32:08x} ${RegList(i + 1).name: ^4} = {self[i + 1].low32:08x}")
-            if i % 4:
-                a += '\n'
-            else:
-                a += ' '
-        a += (f"${RegList(34).name: ^4} = {self[34].low32:08x}")
-        return a
+    def registers(self):
+        return self.__registers, self.__cp0
 
     def set_watchpoint(self, expr):
         self.__watchpoints[self.__watchpoint_id] = (expr, Debugger.compute(self, expr))
@@ -141,6 +165,7 @@ class CPU:
 
     def remove_watchpoint(self, id):
         self.__watchpoints.pop(id)
+        return id
 
     def get_golden_trace(self):
         return self.__golden_trace

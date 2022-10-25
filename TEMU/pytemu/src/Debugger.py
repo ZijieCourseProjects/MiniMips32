@@ -97,14 +97,15 @@ def deal(cpus, self):
         is_0x = re.search('(\\$[0-9a-zA-Z]+)', self)
         temp_0x = (is_0x.group())
         temp_string = ""
-        for i in range(0, 33):
-            if RegList(i).name == temp_0x[1:len(temp_0x)]:
-                temp_string = f"{cpus[i].low32:08x}"
-                temp_string = to_dec("0x" + str(temp_string))
+        for i in RegList:
+            if i.name == temp_0x[1:len(temp_0x)]:
+                if i.value > 40:
+                    temp_string = f"{cpus.cp0[i].low32:08x}"
+                    temp_string = to_dec("0x" + str(temp_string))
+                else:
+                    temp_string = f"{cpus[i].low32:08x}"
+                    temp_string = to_dec("0x" + str(temp_string))
                 break
-            if i == 32:
-                print("Register name may be wrong")
-                return "0"
         self = re.sub('(\\$[0-9a-zA-Z]+)', str(temp_string), self, 1)
     # 去除单目运算符!
     while '!' in self:
@@ -200,47 +201,50 @@ def find_op(lst):
 
 # 进行四则运算的函数
 def deal_expression(lst):
-    # 成对拆括号
-    i = 0
-    while '(' in lst:
-        while lst[i] != ')':
-            i += 1
-        j = i
-        while lst[i] != '(':
-            i -= 1
-        lst = lst[0:i] + [deal_expression(lst[i + 1:j])] + lst[j + 1:len(lst)]
-        # print(lst)
-    # 根据优先级进行计算
-    if len(lst) == 1 or len(lst) == 0:
-        return int(lst[0])
-    op = find_op(lst)
-    val1 = (deal_expression(lst[0:op]))
-    val2 = (deal_expression(lst[op + 1:len(lst)]))
-    if lst[op] == '+':
-        return val1 + val2
-    elif lst[op] == '-':
-        return val1 - val2
-    elif lst[op] == '*':
-        return val1 * val2
-    elif lst[op] == '/':
-        return val1 // val2
-    if lst[op] == '|':
-        if val1 == 0 and val2 == 0:
-            return "0"
-        else:
-            return "1"
-    elif lst[op] == '&':
-        if val1 != 0 and val2 != 0:
-            return "1"
-        else:
-            return "0"
-    elif lst[op] == '=':
-        if val1 == val2:
-            return "1"
-        else:
-            return "0"
-    elif lst[op] == '@':
-        if val1 != val2:
-            return "1"
-        else:
-            return "0"
+    try:
+        # 成对拆括号
+        i = 0
+        while '(' in lst:
+            while lst[i] != ')':
+                i += 1
+            j = i
+            while lst[i] != '(':
+                i -= 1
+            lst = lst[0:i] + [deal_expression(lst[i + 1:j])] + lst[j + 1:len(lst)]
+            # print(lst)
+        # 根据优先级进行计算
+        if len(lst) == 1 or len(lst) == 0:
+            return int(lst[0])
+        op = find_op(lst)
+        val1 = (deal_expression(lst[0:op]))
+        val2 = (deal_expression(lst[op + 1:len(lst)]))
+        if lst[op] == '+':
+            return val1 + val2
+        elif lst[op] == '-':
+            return val1 - val2
+        elif lst[op] == '*':
+            return val1 * val2
+        elif lst[op] == '/':
+            return val1 // val2
+        if lst[op] == '|':
+            if val1 == 0 and val2 == 0:
+                return "0"
+            else:
+                return "1"
+        elif lst[op] == '&':
+            if val1 != 0 and val2 != 0:
+                return "1"
+            else:
+                return "0"
+        elif lst[op] == '=':
+            if val1 == val2:
+                return "1"
+            else:
+                return "0"
+        elif lst[op] == '@':
+            if val1 != val2:
+                return "1"
+            else:
+                return "0"
+    except:
+        raise Exception("Error")
