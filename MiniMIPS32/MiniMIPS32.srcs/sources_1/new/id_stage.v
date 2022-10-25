@@ -68,92 +68,103 @@ module id_stage(
     wire inst_addu=inst_reg& func[5]&~func[4]&~func[3]& ~func[2]&~func[1]& func[0];
     wire inst_multu=inst_reg& ~func[5]& func[4]& func[3]& ~func[2]&~func[1]& func[0];
     wire inst_sub=inst_reg& func[5]& ~func[4]& ~func[3]& ~func[2]& func[1]& ~func[0];
+    wire inst_sltu=inst_reg&func[5]& ~func[4]& func[3]& ~func[2]& func[1]& func[0];
     
     wire inst_addi=~op[5]&~op[4]&op[3]&~op[2]&~op[1]&~op[0];
+    wire inst_slti=~op[5]&~op[4]&op[3]&~op[2]&op[1]&~op[0];
     
+    //logic
+    wire inst_nor=inst_reg&func[5]&~func[4]&~func[3]&func[2]&func[1]&func[0];  
+    wire inst_or=inst_reg&func[5]&~func[4]&~func[3]&func[2]&~func[1]&func[0];  
+    wire inst_xor=inst_reg&func[5]&~func[4]&~func[3]&func[2]&func[1]&~func[0]; 
+    wire inst_andi=~op[5]&~op[4]&op[3]&op[2]&~op[1]&~op[0];
     
+    wire inst_xori=~op[5]&~op[4]&op[3]&op[2]&op[1]&~op[0];
     //shift
     wire inst_sra=inst_reg& ~func[5]& ~func[4]& ~func[3]& ~func[2]& func[1]& func[0];
     wire inst_srav=inst_reg& ~func[5]& ~func[4]& ~func[3]& func[2]& func[1]& func[0];
-    
-    //�����ƶ�ָ��
+    wire inst_sllv=inst_reg& ~func[5]& ~func[4]& ~func[3]& func[2]& ~func[1]& ~func[0];
+    wire inst_srl=inst_reg& ~func[5]& ~func[4]& ~func[3]& ~func[2]& func[1]& ~func[0];
+    wire inst_srlv=inst_reg& ~func[5]& ~func[4]& ~func[3]& func[2]& func[1]& ~func[0];
+
+    //hilo
     wire inst_mthi=inst_reg& ~func[5]& func[4]& ~func[3]& ~func[2]& ~func[1]& func[0];
     wire inst_mtlo=inst_reg& ~func[5]& func[4]& ~func[3]& ~func[2]& func[1]& func[0];
     
-    //�ô�ָ��
+    /memory
     wire inst_lbu=op[5]&~op[4]&~op[3]& op[2]&~op[1]&~op[0];
     wire inst_lh=op[5]&~op[4]&~op[3]& ~op[2]&~op[1]& op[0];
     wire inst_lhu=op[5]&~op[4]&~op[3]& op[2]&~op[1]& op[0];
     wire inst_sh=op[5]&~op[4]& op[3]& ~op[2]&~op[1]& op[0];
-   
     /*------------------------------------------------------------------------------*/
 
     /*-------------------- Step2: generate sepcific controlling signal --------------------*/
     // operate_type
     assign id_alutype_o[2] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                              (inst_sll|inst_sra|inst_srav);
+                              (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl);
     assign id_alutype_o[1] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                             (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui);
+                             (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui|inst_andi|inst_nor|inst_or|inst_xor|inst_xori);
     assign id_alutype_o[0] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_add|inst_subu|inst_slt|inst_mfhi|inst_mflo|
                                inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
-                               inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh);
+                               inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_slti|inst_sltu);
 
     // OP-code
     assign id_aluop_o[7]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                                (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh);
     assign id_aluop_o[6]   = 1'b0;
     assign id_aluop_o[5]   =  (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                               (inst_slt|inst_sltiu);
+                               (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori);
     assign id_aluop_o[4]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_add|inst_subu|inst_and|inst_mult|inst_sll|
                                inst_ori|inst_addiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                                inst_addi|inst_multu|inst_sra|inst_srav|inst_sub|inst_lbu|
-                               inst_lh|inst_lhu|inst_sh);
+                               inst_lh|inst_lhu|inst_sh|inst_andi);
                               
     assign id_aluop_o[3]   =(cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_add|inst_subu|inst_and|inst_mfhi|inst_mflo|
                                inst_ori|inst_addiu|inst_sb|inst_sw|inst_addi|inst_sub|
-                               inst_mthi|inst_mtlo|inst_sh);
+                               inst_mthi|inst_mtlo|inst_sh|inst_andi|inst_sllv|inst_srlv|inst_srl);
     assign id_aluop_o[2]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
-                               inst_mthi|inst_mtlo|inst_lhu);
+                               inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi);
     assign id_aluop_o[1]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
-                              inst_lh);
+                              inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl);
                              
     assign id_aluop_o[0]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
-                              inst_lbu|inst_lh|inst_sh);
- 
-    // enabling signal for GPRs
+                              inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv);
+     // enabling signal for GPRs
     assign id_wreg_o       = (cpu_rst_n==`RST_ENABLE)? 1'b0:
                              (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu| 
                                inst_lb|inst_lw|inst_addu|inst_addi|inst_sra|inst_srav|inst_sub|
-                               inst_lhu|inst_lh|inst_lbu);
+                               inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl);
+
 
     //enabling signal for writing hilo register
     assign id_whilo_o[1] =(cpu_rst_n==`RST_ENABLE)? 1'b0:(inst_mult|inst_multu|inst_mthi);
     assign id_whilo_o[0] =(cpu_rst_n==`RST_ENABLE)? 1'b0:(inst_mult|inst_multu|inst_mtlo);
     
     // shift signal
-    wire shift=inst_sll|inst_sra;
+    wire shift=inst_sll|inst_sra|inst_srl;  
     
     //immediate number signal
+    
     wire immsel=inst_ori|inst_lui|inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|
-                 inst_addi|inst_lhu|inst_lh|inst_lbu|inst_sh;
+                 inst_addi|inst_lhu|inst_lh|inst_lbu|inst_sh|inst_slti|inst_andi|inst_xori;
     
     //destination register selection signal
     wire rtsel= inst_ori|inst_lui|inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_addi|
-                 inst_lhu|inst_lh|inst_lbu;
+                 inst_lhu|inst_lh|inst_lbu|inst_slti|inst_andi|inst_xori;
     
     //Signed extension signal
     wire sext= inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addi|
-                inst_lhu|inst_lh|inst_lbu|inst_sh;
+                inst_lhu|inst_lh|inst_lbu|inst_sh|inst_slti;
     
     //signal for high semi-word signal
     wire upper=inst_lui;
@@ -176,9 +187,9 @@ module id_stage(
     assign id_din_o=(cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:rd2;
 
     // shift count if shift signal is active, else data from register port 1
+
     assign id_src1_o = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:
                        (shift==`SHIFT_ENABLE)?{27'b0,sa}:rd1;
-
     // imm if imm signal is active, else the data from register port 2
     assign id_src2_o = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:
                        (immsel==`IMM_ENABLE)?imm_ext:rd2;                  

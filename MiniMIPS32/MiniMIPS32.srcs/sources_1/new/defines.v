@@ -1,45 +1,48 @@
 `timescale 1ns / 1ps
 
-/*------------------- È«¾Ö²ÎÊý -------------------*/
-`define RST_ENABLE      1'b0                // ¸´Î»ÐÅºÅÓÐÐ§  RST_ENABLE
-`define RST_DISABLE     1'b1                // ¸´Î»ÐÅºÅÎÞÐ§
-`define ZERO_WORD       32'h00000000        // 32Î»µÄÊýÖµ0
-`define ZERO_DWORD      64'b0               // 64Î»µÄÊýÖµ0
-`define WRITE_ENABLE    1'b1                // Ê¹ÄÜÐ´
-`define WRITE_DISABLE   1'b0                // ½ûÖ¹Ð´
-`define READ_ENABLE     1'b1                // Ê¹ÄÜ¶Á
-`define READ_DISABLE    1'b0                // ½ûÖ¹¶Á
-`define ALUOP_BUS       7 : 0               // ÒëÂë½×¶ÎµÄÊä³öaluop_oµÄ¿í¶È
-`define WE_HILO         1: 0                //hilo¼Ä´æÆ÷Ð´Ê¹ÄÜ¿í¶È
-`define SHIFT_ENABLE    1'b1                // ÒÆÎ»Ö¸ÁîÊ¹ÄÜ 
-`define ALUTYPE_BUS     2 : 0               // ÒëÂë½×¶ÎµÄÊä³öalutype_oµÄ¿í¶È  
-`define TRUE_V          1'b1                // Âß¼­"Õæ"  
-`define FALSE_V         1'b0                // Âß¼­"¼Ù"  
-`define CHIP_ENABLE     1'b1                // Ð¾Æ¬Ê¹ÄÜ  
-`define CHIP_DISABLE    1'b0                // Ð¾Æ¬½ûÖ¹  
-`define WORD_BUS        31: 0               // 32Î»¿í
-`define DOUBLE_REG_BUS  63: 0               // Á½±¶µÄÍ¨ÓÃ¼Ä´æÆ÷µÄÊý¾ÝÏß¿í¶È
-`define RT_ENABLE       1'b1                // rtÑ¡ÔñÊ¹ÄÜ
-`define SIGNED_EXT      1'b1                // ·ûºÅÀ©Õ¹Ê¹ÄÜ
-`define IMM_ENABLE      1'b1                // Á¢¼´ÊýÑ¡ÔñÊ¹ÄÜ
-`define UPPER_ENABLE    1'b1                // Á¢¼´ÊýÒÆÎ»Ê¹ÄÜ
-`define MREG_ENABLE     1'b1                // Ð´»Ø½×¶Î´æ´¢Æ÷½á¹ûÑ¡ÔñÐÅºÅ
-`define BSEL_BUS        3 : 0               // Êý¾Ý´æ´¢Æ÷×Ö½ÚÑ¡ÔñÐÅºÅ¿í¶È
-`define PC_INIT         32'hBFC00000        // PC³õÊ¼Öµ
+/*------------------- È«ï¿½Ö²ï¿½ï¿½ï¿½ -------------------*/
+`define RST_ENABLE      1'b0                // ï¿½ï¿½Î»ï¿½Åºï¿½ï¿½ï¿½Ð§  RST_ENABLE
+`define RST_DISABLE     1'b1                // ï¿½ï¿½Î»ï¿½Åºï¿½ï¿½ï¿½Ð§
+`define ZERO_WORD       32'h00000000        // 32Î»ï¿½ï¿½ï¿½ï¿½Öµ0
+`define ZERO_DWORD      64'b0               // 64Î»ï¿½ï¿½ï¿½ï¿½Öµ0
+`define WRITE_ENABLE    1'b1                // Ê¹ï¿½ï¿½Ð´
+`define WRITE_DISABLE   1'b0                // ï¿½ï¿½Ö¹Ð´
+`define READ_ENABLE     1'b1                // Ê¹ï¿½Ü¶ï¿½
+`define READ_DISABLE    1'b0                // ï¿½ï¿½Ö¹ï¿½ï¿½
+`define ALUOP_BUS       7 : 0               // ï¿½ï¿½ï¿½ï¿½×¶Îµï¿½ï¿½ï¿½ï¿½aluop_oï¿½Ä¿ï¿½ï¿½ï¿½
+`define WE_HILO         1: 0                //hiloï¿½Ä´ï¿½ï¿½ï¿½Ð´Ê¹ï¿½Ü¿ï¿½ï¿½ï¿½
+`define SHIFT_ENABLE    1'b1                // ï¿½ï¿½Î»Ö¸ï¿½ï¿½Ê¹ï¿½ï¿½ 
+`define ALUTYPE_BUS     2 : 0               // ï¿½ï¿½ï¿½ï¿½×¶Îµï¿½ï¿½ï¿½ï¿½alutype_oï¿½Ä¿ï¿½ï¿½ï¿½  
+`define TRUE_V          1'b1                // ï¿½ß¼ï¿½"ï¿½ï¿½"  
+`define FALSE_V         1'b0                // ï¿½ß¼ï¿½"ï¿½ï¿½"  
+`define CHIP_ENABLE     1'b1                // Ð¾Æ¬Ê¹ï¿½ï¿½  
+`define CHIP_DISABLE    1'b0                // Ð¾Æ¬ï¿½ï¿½Ö¹  
+`define WORD_BUS        31: 0               // 32Î»ï¿½ï¿½
+`define DOUBLE_REG_BUS  63: 0               // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¨ï¿½Ã¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½
+`define RT_ENABLE       1'b1                // rtÑ¡ï¿½ï¿½Ê¹ï¿½ï¿½
+`define SIGNED_EXT      1'b1                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹Ê¹ï¿½ï¿½
+`define IMM_ENABLE      1'b1                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½Ê¹ï¿½ï¿½
+`define UPPER_ENABLE    1'b1                // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»Ê¹ï¿½ï¿½
+`define MREG_ENABLE     1'b1                // Ð´ï¿½Ø½×¶Î´æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½Åºï¿½
+`define BSEL_BUS        3 : 0               // ï¿½ï¿½ï¿½Ý´æ´¢ï¿½ï¿½ï¿½Ö½ï¿½Ñ¡ï¿½ï¿½ï¿½ÅºÅ¿ï¿½ï¿½ï¿½
+`define PC_INIT         32'hBFC00000        // PCï¿½ï¿½Ê¼Öµ
 
-/*------------------- Ö¸Áî×Ö²ÎÊý -------------------*/
-`define INST_ADDR_BUS   31: 0               // Ö¸ÁîµÄµØÖ·¿í¶È
-`define INST_BUS        31: 0               // Ö¸ÁîµÄÊý¾Ý¿í¶È
+/*------------------- Ö¸ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ -------------------*/
+`define INST_ADDR_BUS   31: 0               // Ö¸ï¿½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ï¿½
+`define INST_BUS        31: 0               // Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½
 
-// ²Ù×÷ÀàÐÍalutype
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½alutype
 `define NOP             3'b000
 `define ARITH           3'b001
 `define LOGIC           3'b010
 `define MOVE            3'b011
 `define SHIFT           3'b100
 
-// ÄÚ²¿²Ù×÷Âëaluop
+// ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluop
 `define MINIMIPS32_LUI             8'h05
+`define MINIMIPS32_SRLV            8'h09
+`define MINIMIPS32_SRL             8'h0A
+`define MINIMIPS32_SLLV            8'h0B
 `define MINIMIPS32_MFHI            8'h0C
 `define MINIMIPS32_MFLO            8'h0D
 `define MINIMIPS32_MTHI            8'h0E
@@ -75,8 +78,8 @@
 `define MINIMIPS32_SH              8'h99
 `define MINIMIPS32_SW              8'h9A
 
-/*------------------- Í¨ÓÃ¼Ä´æÆ÷¶Ñ²ÎÊý -------------------*/
-`define REG_BUS         31: 0               // ¼Ä´æÆ÷Êý¾Ý¿í¶È
-`define REG_ADDR_BUS    4 : 0               // ¼Ä´æÆ÷µÄµØÖ·¿í¶È
-`define REG_NUM         32                  // ¼Ä´æÆ÷ÊýÁ¿32¸ö
-`define REG_NOP         5'b00000            // ÁãºÅ¼Ä´æÆ÷
+/*------------------- Í¨ï¿½Ã¼Ä´ï¿½ï¿½ï¿½ï¿½Ñ²ï¿½ï¿½ï¿½ -------------------*/
+`define REG_BUS         31: 0               // ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý¿ï¿½ï¿½ï¿½
+`define REG_ADDR_BUS    4 : 0               // ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Äµï¿½Ö·ï¿½ï¿½ï¿½ï¿½
+`define REG_NUM         32                  // ï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½32ï¿½ï¿½
+`define REG_NOP         5'b00000            // ï¿½ï¿½Å¼Ä´ï¿½ï¿½ï¿½
