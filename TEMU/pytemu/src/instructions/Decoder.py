@@ -1,8 +1,8 @@
 from instructions.i_type_ins import *
 from instructions.j_type_ins import *
-from instructions.r_type_ins import *
 from instructions.nop_ins import nop_ins
 from instructions.pr_ins import *
+from instructions.r_type_ins import *
 
 
 class Decoder:

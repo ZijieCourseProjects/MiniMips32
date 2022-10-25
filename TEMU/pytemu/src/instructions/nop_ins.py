@@ -1,6 +1,7 @@
 from instructions.Instruction import Instruction
 
 
+# noinspection PyUnusedLocal
 class nop_ins(Instruction):
     def __init__(self, instruction):
         pass

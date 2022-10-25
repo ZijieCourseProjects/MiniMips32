@@ -1,5 +1,6 @@
-import Memory
 from unittest import TestCase
+
+import Memory
 
 
 class Test_Memory(TestCase):

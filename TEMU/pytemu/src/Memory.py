@@ -44,6 +44,7 @@ class Memory:
         for rb in self.__rowbufs:
             rb['valid'] = np.False_
 
+    # noinspection DuplicatedCode
     def ddr3_read(self, address):
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
@@ -53,6 +54,7 @@ class Memory:
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
         return np.copy(rowbuf['buf'][col:col + self.BURST_LEN])
 
+    # noinspection DuplicatedCode
     def ddr3_write(self, address, data, mask):
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
@@ -68,31 +70,31 @@ class Memory:
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 
-    def read(self, address, len):
+    def read(self, address, length):
         offset = address & self.BURST_MASK
         data = self.ddr3_read(address)
-        if offset + len > self.BURST_LEN:
+        if offset + length > self.BURST_LEN:
             data = np.append(data, self.ddr3_read(address + self.BURST_LEN))
 
-        result = data[offset:offset + len]
+        result = data[offset:offset + length]
         ans = 0
-        for i in range(len - 1, -1, -1):
+        for i in range(length - 1, -1, -1):
             ans = ans << 8 | result[i]
 
         return ans
 
-    def write(self, address, data, len):
+    def write(self, address, data, length):
         offset = address & self.BURST_MASK
         mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
-        mask[offset:offset + len] = 1
+        mask[offset:offset + length] = 1
         splited_little_edian_data = []
-        for i in range(len):
+        for i in range(length):
             splited_little_edian_data.append(data & 0xFF)
             data >>= 8
         self.ddr3_write(address, splited_little_edian_data, mask)
-        if offset + len > self.BURST_LEN:
+        if offset + length > self.BURST_LEN:
             mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
-            mask[0:offset + len - self.BURST_LEN] = 1
+            mask[0:offset + length - self.BURST_LEN] = 1
             self.ddr3_write(address + self.BURST_LEN, splited_little_edian_data, mask)
 
     def load_file(self, filepath, address):

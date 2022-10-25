@@ -1,7 +1,8 @@
-from instructions.Instruction import Instruction
 from RegList import RegList
+from instructions.Instruction import Instruction
 
 
+# noinspection PyUnusedLocal
 class eret_ins(Instruction):
     def __init__(self, instruction):
         pass

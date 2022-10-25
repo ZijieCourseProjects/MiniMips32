@@ -1,8 +1,8 @@
-from instructions.i_type_ins.IIns import I_Ins
+from ExcCode import ExcCode
 from RegList import RegList
 from instructions.Instruction import signed_extend
-from ctypes import *
-from ExcCode import ExcCode
+from instructions.i_type_ins.IIns import I_Ins
+
 
 class lh_ins(I_Ins):
     def __init__(self, instruction):

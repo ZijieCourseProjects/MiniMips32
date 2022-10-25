@@ -7,10 +7,10 @@ import numpy as np
 
 
 class Register:
-    def __init__(self, cpu, id):
+    def __init__(self, cpu, reg_id):
         self.__value = np.uint32(0)
         self.__cpu = cpu
-        self.__id = id
+        self.__id = reg_id
 
     def reset(self):
         self.__value = np.uint32(0)

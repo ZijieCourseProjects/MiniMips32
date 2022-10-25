@@ -1,8 +1,8 @@
 from ctypes import *
 
 import instructions.r_type_ins.RIns as RIns
-from RegList import RegList
 from ExcCode import ExcCode
+from RegList import RegList
 
 
 class add_ins(RIns.R_Ins):

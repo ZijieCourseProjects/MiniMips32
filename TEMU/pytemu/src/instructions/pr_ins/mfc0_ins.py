@@ -1,5 +1,5 @@
-from instructions.Instruction import Instruction
 from RegList import RegList
+from instructions.Instruction import Instruction
 
 
 class mfc0_ins(Instruction):

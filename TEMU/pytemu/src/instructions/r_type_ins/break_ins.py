@@ -1,5 +1,4 @@
 import instructions.r_type_ins.RIns as RIns
-from RegList import RegList
 from ExcCode import ExcCode
 
 

@@ -10,9 +10,13 @@ from instructions.Decoder import Decoder
 from util import in_print
 
 
+class CPUState(Enum):
+    RUNNING = 0
+    STOPPED = 1
+
+
 class CPU:
     ENTRY_START = 0xbfc00000
-    CPUState = Enum('CPUState', ('RUNNING', 'STOPPED'))
 
     def __init__(self):
         self.__memory = Memory()
@@ -20,11 +24,12 @@ class CPU:
         self.__cp0 = {RegList.STATUS: StatusRegister(self, RegList.STATUS.value),
                       RegList.EPC: Register(self, RegList.EPC.value), RegList.CAUSE: Cause(self, RegList.CAUSE.value)}
         self.__golden_trace = []
-        self.__registers[RegList.PC.value].low32 = self.ENTRY_START
-        self.__state = self.CPUState.RUNNING
+        self.__registers[RegList.PC].low32 = self.ENTRY_START
+        self.__state = CPUState.RUNNING
         self.__watchpoints = {}
         self.__instrs = {}
         self.__watchpoint_id = 0
+        self.__instr_count = 0
 
     @property
     def instrs(self):
@@ -45,7 +50,7 @@ class CPU:
 
     def stop(self):
         in_print('CPU stopped!')
-        self.__state = self.CPUState.STOPPED
+        self.__state = CPUState.STOPPED
 
     def __getitem__(self, item) -> Register:
         if RegList(item) not in RegList:
@@ -57,9 +62,9 @@ class CPU:
             raise ValueError(f"Invalid register {key}")
         self.__registers[key] = value
 
-    def add_golden_trace(self, id, value):
-        if id != RegList.PC.value:
-            self.__golden_trace.append((self[RegList.PC.value].low32, id, value))
+    def add_golden_trace(self, reg_id, value):
+        if reg_id != RegList.PC.value:
+            self.__golden_trace.append((self[RegList.PC.value].low32, reg_id, value))
 
     def execute(self, instruction):
         instruction.execute(self)
@@ -75,15 +80,15 @@ class CPU:
 
         a = ''
         for i in range(-num, num):
-            try:
-                ins = str(Decoder.decode_instr(self.__memory.read(self[RegList.PC.value].low32 + i * 4, 4)))
-                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + f'{ins: ^30}' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + f'{ins: ^30}' + '\n '
-            except Exception:
-                a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " + 'Invalid Instruction' + '\n' if i != 0 else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' + 'Invalid Instruction' + '\n'
+            ins = str(Decoder.decode_instr(self.__memory.read(self[RegList.PC.value].low32 + i * 4, 4)))
+            a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " \
+                 + f'{ins: ^30}' + '\n' if i != 0 \
+                else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' \
+                     + f'{ins: ^30}' + '\n '
         return a
 
     def step(self):
-        self.__state = self.CPUState.RUNNING
+        self.__state = CPUState.RUNNING
         current_pc = self[RegList.PC.value].low32
         if current_pc & 0x3 != 0:
             self.raise_exption(ExcCode.ExcCode.ADEL)
@@ -93,21 +98,21 @@ class CPU:
 
         instruction = Decoder.decode_instr(instruction_byte)
 
-        if instruction == None:
+        if instruction is None:
             self.raise_exption(ExcCode.ExcCode.RI)
             return f'Invalid instruction: {hex(instruction_byte)}'
 
         self.execute(instruction)
 
-        if not self.check_intterupt() and not self.__state == self.CPUState.STOPPED:
+        if not self.check_intterupt() and not self.__state == CPUState.STOPPED:
             self[RegList.PC.value].low32 += 4
 
         self.check_watchpoints()
         return f'{current_pc:08x}' + "  " + str(instruction)
 
     def run(self):
-        self.__state = self.CPUState.RUNNING
-        while self.__state == self.CPUState.RUNNING:
+        self.__state = CPUState.RUNNING
+        while self.__state == CPUState.RUNNING:
             in_print(self.step())
 
     @property
@@ -155,17 +160,17 @@ class CPU:
     def check_watchpoints(self):
         for watch_id, (expr, value) in self.__watchpoints.items():
             if Debugger.compute(self, expr) != value:
-                self.__state = self.CPUState.STOPPED
+                self.__state = CPUState.STOPPED
                 in_print(f"Watchpoint {watch_id} triggered for {expr}")
                 return watch_id
 
     def print_watchpoints(self):
-        for id, (expr, value) in self.__watchpoints.items():
-            in_print(f"Watchpoint {id} set for {expr}")
+        for watchpoint_id, (expr, value) in self.__watchpoints.items():
+            in_print(f"Watchpoint {watchpoint_id} set for {expr}")
 
-    def remove_watchpoint(self, id):
-        self.__watchpoints.pop(id)
-        return id
+    def remove_watchpoint(self, watchpoint_id):
+        self.__watchpoints.pop(watchpoint_id)
+        return watchpoint_id
 
     def get_golden_trace(self):
         return self.__golden_trace
