@@ -91,7 +91,7 @@ module id_stage(
     wire inst_mthi=inst_reg& ~func[5]& func[4]& ~func[3]& ~func[2]& ~func[1]& func[0];
     wire inst_mtlo=inst_reg& ~func[5]& func[4]& ~func[3]& ~func[2]& func[1]& func[0];
     
-    /memory
+    //memory
     wire inst_lbu=op[5]&~op[4]&~op[3]& op[2]&~op[1]&~op[0];
     wire inst_lh=op[5]&~op[4]&~op[3]& ~op[2]&~op[1]& op[0];
     wire inst_lhu=op[5]&~op[4]&~op[3]& op[2]&~op[1]& op[0];
