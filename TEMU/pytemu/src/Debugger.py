@@ -204,6 +204,8 @@ def find_op(lst):
 def deal_expression(lst):
     # 成对拆括号
     i = 0
+    if (lst[0] == '-'):
+        lst = ['0'] + lst
     while '(' in lst:
         while lst[i] != ')':
             i += 1
