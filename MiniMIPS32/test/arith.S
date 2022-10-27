@@ -10,6 +10,7 @@ main:
       addi    $s1,$s1,0x7fff     #$s1=0xffff7fff
       addi    $t0,$t0,0x7000     #$t0=0xffff7000
       addiu   $s3,$s3,0x7edc     #$s3=0xffff7edc
+      nop
       add     $s0,$s1,$s1        #$s0=0xfffefffe
       add     $t2,$s1,$t0        #$t2=0xfffeefff
       addu    $s2,$s1,$s3        #$s2=0xfffefedb
@@ -43,7 +44,7 @@ main:
       ori     $s6,$s1,0x8        #$s6=0x89ab7def
       ori     $s7,$s1,0x8        #$s7=0x89ab7def
       xor     $s4,$s0,$s1        #$s4=0x9b9f2b97
-      xor     $s5,$s4,$s5        #$s5=0x64605678
+      nop
       xori    $s6,$s0,0x8        #$s6=0x12345670
       xori    $s7,$s1,0x0        #$s7=0x89ab7def
       addu    $s4,$s1,$s1        #$s4=0x1356fbde
