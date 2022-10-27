@@ -2,7 +2,6 @@
 //add the output port  mem_aluop_o,which is transmitted to the stage wb,used to distinguish the inst
 //L__and inst S__
  module mem_stage (
-    input  wire                         cpu_rst_n,  
     
     // 从执行阶段获得的信息
     input  wire [`ALUOP_BUS     ]       mem_aluop_i,
@@ -32,13 +31,13 @@
     );
 
     // 如果当前不是访存指令，则只需要把从执行阶段获得的信息直接输出
-    assign mem_wa_o     = (cpu_rst_n == `RST_ENABLE)?5'b0 : mem_wa_i;
-    assign mem_wreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_wreg_i;
-    assign mem_dreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_wd_i;
-    assign mem_whilo_o  = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_whilo_i;
-    assign mem_hilo_o   = (cpu_rst_n == `RST_ENABLE)?64'b0 : mem_hilo_i;
-    assign mem_mreg_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_mreg_i;
-    assign mem_aluop_o   = (cpu_rst_n == `RST_ENABLE)?1'b0 : mem_aluop_i;
+    assign mem_wa_o     =  mem_wa_i;
+    assign mem_wreg_o   = mem_wreg_i;
+    assign mem_dreg_o   = mem_wd_i;
+    assign mem_whilo_o  = mem_whilo_i;
+    assign mem_hilo_o   = mem_hilo_i;
+    assign mem_mreg_o   =  mem_mreg_i;
+    assign mem_aluop_o   =  mem_aluop_i;
 
     // 确定当前的访存指�?
     wire inst_lb=(mem_aluop_i == 8'h90);
@@ -51,45 +50,45 @@
     wire inst_lhu=(mem_aluop_i == 8'h94);
        
     // 获得数据存储器读字节使能信号
-    assign daddr  = (cpu_rst_n == `RST_ENABLE)? `ZERO_WORD : mem_wd_i;
+    assign daddr  =  mem_wd_i;
 
     //note that the little endian
-    assign dre[3] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign dre[3] = 
                     ((inst_lb &(daddr[1:0]==2'b00))|
                      (inst_lbu &(daddr[1:0]==2'b00))|
                       (inst_lh &(daddr[1:0]==2'b00))|
                       (inst_lhu &(daddr[1:0]==2'b00))|inst_lw);
-    assign dre[2] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign dre[2] = 
                     ((inst_lb &(daddr[1:0]==2'b01))|
                       (inst_lbu &(daddr[1:0]==2'b01))|
                        (inst_lh &(daddr[1:0]==2'b00))|
                        (inst_lhu &(daddr[1:0]==2'b00))|inst_lw);
-    assign dre[1] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign dre[1] =
                     ((inst_lb &(daddr[1:0]==2'b10))|
                      (inst_lbu &(daddr[1:0]==2'b10))|
                       (inst_lh &(daddr[1:0]==2'b10))|
                       (inst_lhu &(daddr[1:0]==2'b10))|inst_lw);
-    assign dre[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign dre[0] =
                     ((inst_lb &(daddr[1:0]==2'b11))|
                      (inst_lbu &(daddr[1:0]==2'b11))|
                       (inst_lh &(daddr[1:0]==2'b10))|
                       (inst_lhu &(daddr[1:0]==2'b10))|inst_lw);
     
     // 获得数据存储器使能信�?
-    assign dce = (cpu_rst_n == `RST_ENABLE)? 1'b0 : (inst_lb|inst_lw|inst_sb|inst_sw|
-                                                     inst_lbu|inst_lh|inst_lhu);
+    assign dce = (inst_lb|inst_lw|inst_sb|inst_sw|
+                                                     inst_lbu|inst_lh|inst_lhu|inst_sh);
     
     // 获得数据存储器写字节使能信号
-    assign we[3] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign we[3] = 
                     ((inst_sb &(daddr[1:0]==2'b00))|
                      (inst_sh &(daddr[1:0]==2'b00))|inst_sw);
-    assign we[2] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign we[2] = 
                     ((inst_sb &(daddr[1:0]==2'b01))|
                      (inst_sh &(daddr[1:0]==2'b00))|inst_sw);
-    assign we[1] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign we[1] = 
                     ((inst_sb &(daddr[1:0]==2'b10))|
                      (inst_sh &(daddr[1:0]==2'b10))|inst_sw);
-    assign we[0] = (cpu_rst_n == `RST_ENABLE)? 1'b0:
+    assign we[0] =
                     ((inst_sb &(daddr[1:0]==2'b11))|
                      (inst_sh &(daddr[1:0]==2'b10))|inst_sw);
     
@@ -97,7 +96,7 @@
     wire[`WORD_BUS] din_reverse = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[23:16],mem_din_i[31:24]};
     wire[`WORD_BUS] din_byte = {mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0]};
     wire[`WORD_BUS] din_half = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[7:0],mem_din_i[15:8]};
-    assign din = (cpu_rst_n == `RST_ENABLE)?`ZERO_WORD:
+    assign din = 
                  (we == 4'b1111 )?din_reverse:
                  (we == 4'b1000 )?din_byte:
                  (we == 4'b0100 )?din_byte:

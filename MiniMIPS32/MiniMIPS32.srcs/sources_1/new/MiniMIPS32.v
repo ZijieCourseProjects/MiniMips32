@@ -103,7 +103,6 @@ module MiniMIPS32(
     );
 
     id_stage id_stage0(.id_pc_i(id_pc_i), 
-        .cpu_rst_n(cpu_rst_n),
         .id_inst_i(inst),
         .rd1(rd1), .rd2(rd2),	  
         .ra1(ra1), .ra2(ra2), 
@@ -133,7 +132,6 @@ module MiniMIPS32(
     );
     
     exe_stage exe_stage0(
-        .cpu_rst_n(cpu_rst_n),
         .exe_alutype_i(exe_alutype_i), .exe_aluop_i(exe_aluop_i),
         .exe_src1_i(exe_src1_i), .exe_src2_i(exe_src2_i),
         .exe_wa_i(exe_wa_i), .exe_wreg_i(exe_wreg_i),
@@ -157,7 +155,7 @@ module MiniMIPS32(
     );
 
     mem_stage mem_stage0(
-        .cpu_rst_n(cpu_rst_n),.mem_aluop_i(mem_aluop_i),
+       .mem_aluop_i(mem_aluop_i),
         .mem_wa_i(mem_wa_i), .mem_wreg_i(mem_wreg_i), .mem_wd_i(mem_wd_i),
         .mem_mreg_i(mem_mreg_i),.mem_din_i(mem_din_i),
         .mem_whilo_i(mem_whilo_i),.mem_hilo_i(mem_hilo_i),
@@ -178,7 +176,6 @@ module MiniMIPS32(
     );
 
     wb_stage wb_stage0(
-        .cpu_rst_n(cpu_rst_n),
         .wb_mreg_i(wb_mreg_i),.wb_dre_i(wb_dre_i),
         .wb_wa_i(wb_wa_i), .wb_wreg_i(wb_wreg_i), .wb_dreg_i(wb_dreg_i), 
         .wb_whilo_i(wb_whilo_i),.wb_hilo_i(wb_hilo_i),.wb_aluop_i( wb_aluop_i),

@@ -3,7 +3,6 @@
 module id_stage(
     
     // PC value from instr_fection stage
-    input wire cpu_rst_n,
     input  wire [`INST_ADDR_BUS]    id_pc_i,
 
     // instruction word from inst_rom
@@ -100,46 +99,43 @@ module id_stage(
 
     /*-------------------- Step2: generate sepcific controlling signal --------------------*/
     // operate_type
-    assign id_alutype_o[2] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                              (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl);
-    assign id_alutype_o[1] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                             (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui|inst_andi|inst_nor|inst_or|inst_xor|inst_xori);
-    assign id_alutype_o[0] = (cpu_rst_n==`RST_ENABLE)? 1'b0:
-                             (inst_add|inst_subu|inst_slt|inst_mfhi|inst_mflo|
+    assign id_alutype_o[2] = (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl);
+    assign id_alutype_o[1] = (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui|inst_andi|inst_nor|inst_or|inst_xor|inst_xori);
+    assign id_alutype_o[0] =  (inst_add|inst_subu|inst_slt|inst_mfhi|inst_mflo|
                                inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                                inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_slti|inst_sltu);
 
     // OP-code
-    assign id_aluop_o[7]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[7]   = 
                                (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh);
     assign id_aluop_o[6]   = 1'b0;
-    assign id_aluop_o[5]   =  (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[5]   =  
                                (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori);
-    assign id_aluop_o[4]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[4]   = 
                              (inst_add|inst_subu|inst_and|inst_mult|inst_sll|
                                inst_ori|inst_addiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                                inst_addi|inst_multu|inst_sra|inst_srav|inst_sub|inst_lbu|
                                inst_lh|inst_lhu|inst_sh|inst_andi);
                               
-    assign id_aluop_o[3]   =(cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[3]   =
                              (inst_add|inst_subu|inst_and|inst_mfhi|inst_mflo|
                                inst_ori|inst_addiu|inst_sb|inst_sw|inst_addi|inst_sub|
                                inst_mthi|inst_mtlo|inst_sh|inst_andi|inst_sllv|inst_srlv|inst_srl);
-    assign id_aluop_o[2]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[2]   = 
                              (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
                                inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi);
-    assign id_aluop_o[1]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[1]   = 
                              (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
                               inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl);
                              
-    assign id_aluop_o[0]   = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_aluop_o[0]   = 
                              (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv);
      // enabling signal for GPRs
-    assign id_wreg_o       = (cpu_rst_n==`RST_ENABLE)? 1'b0:
+    assign id_wreg_o       = 
                              (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu| 
                                inst_lb|inst_lw|inst_addu|inst_addi|inst_sra|inst_srav|inst_sub|
@@ -147,8 +143,8 @@ module id_stage(
 
 
     //enabling signal for writing hilo register
-    assign id_whilo_o[1] =(cpu_rst_n==`RST_ENABLE)? 1'b0:(inst_mult|inst_multu|inst_mthi);
-    assign id_whilo_o[0] =(cpu_rst_n==`RST_ENABLE)? 1'b0:(inst_mult|inst_multu|inst_mtlo);
+    assign id_whilo_o[1] =(inst_mult|inst_multu|inst_mthi);
+    assign id_whilo_o[0] =(inst_mult|inst_multu|inst_mtlo);
     
     // shift signal
     wire shift=inst_sll|inst_sra|inst_srl;  
@@ -170,28 +166,28 @@ module id_stage(
     wire upper=inst_lui;
     
     //memory to register signal
-    assign id_mreg_o =(cpu_rst_n==`RST_ENABLE)? 1'b0:(inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
+    assign id_mreg_o =(inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
     
     //rs -> ra1 , rt -> ra2
-    assign ra1 =(cpu_rst_n==`RST_ENABLE)? `ZERO_WORD:rs;
-    assign ra2 =(cpu_rst_n==`RST_ENABLE)? `ZERO_WORD:rt;
+    assign ra1 =rs;
+    assign ra2 =rt;
     /*------------------------------------------------------------------------------*/
     //imm number for execute
-    wire [31:0]imm_ext=(cpu_rst_n==`RST_ENABLE)? `ZERO_WORD:
+    wire [31:0]imm_ext=
                         (upper==`UPPER_ENABLE)?(imm<<16):
                         (sext==`SIGNED_EXT)?{{16{imm[15]}},imm}:{{16{1'b0}},imm};              
     // address of destination register to write
-    assign id_wa_o      = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:(rtsel==`RT_ENABLE)? rt:rd;
+    assign id_wa_o      = (rtsel==`RT_ENABLE)? rt:rd;
     
     //data to be written into the memory
-    assign id_din_o=(cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:rd2;
+    assign id_din_o=rd2;
 
     // shift count if shift signal is active, else data from register port 1
 
-    assign id_src1_o = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:
+    assign id_src1_o = 
                        (shift==`SHIFT_ENABLE)?{27'b0,sa}:rd1;
     // imm if imm signal is active, else the data from register port 2
-    assign id_src2_o = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:
+    assign id_src2_o = 
                        (immsel==`IMM_ENABLE)?imm_ext:rd2;                  
 
 endmodule
