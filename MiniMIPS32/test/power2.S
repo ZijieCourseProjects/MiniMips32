@@ -6,9 +6,10 @@ wdata:  .word 0x00000040,0x00000080
    .text
 main: 
 
+    lui       $s6,0x8000        #$s6=0x80000000
     lui       $s0,0x1000        #$s0=0x10000000
     addi      $t0,$zero,0x1     #$t0=1
-    lui       $s6,0x8000        #$s6=0x80000000
+    nop
     addi      $s7,$s6,0x3000    #$s7=0x80003000
     lw        $t1,0x0($s0)        #$t1=0x40
     sub       $t2,$zero,$t0       #$t2=0xffffffff

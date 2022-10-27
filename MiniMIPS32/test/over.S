@@ -26,6 +26,7 @@ main:
     sltiu $s3,$t4,1    #$s3=1
     sltiu $s4,$t2,1    #$s4=0
     sltiu $s5,$t5,1    #$s5=0
+    nop
     and  $s2,$s2,$s3   #$s2=1
     and  $t3,$t3,$t4   #$t3=0
     or   $s4,$s4,$s5   #$s4=0

@@ -46,9 +46,15 @@ main:
         lw  $t1,40($s3)  #$t1=0x78000000
         mthi $t3
         mtlo $t4
+        nop
+        nop
+        nop
         mfhi $t0         #$t0=0xffffff87
         mflo $t1         #$t1=0xffffff88
         mult $s0,$s1
+        nop
+        nop
+        nop
         mfhi $t0           #$t0=0xffffffff
         mflo $t1           #$t1=0xfffedffe
 
