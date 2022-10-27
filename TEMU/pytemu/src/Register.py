@@ -31,6 +31,7 @@ class Register:
     @low16.setter
     def low16(self, value):
         self.__value = (self.__value & 0xFFFF0000) | np.uint16(value)
+        self.__cpu.add_golden_trace(self.__id, value)
 
     @property
     def low8(self) -> np.uint8:
@@ -39,6 +40,7 @@ class Register:
     @low8.setter
     def low8(self, value):
         self.__value = (self.__value & 0xFFFFFF00) | np.uint8(value)
+        self.__cpu.add_golden_trace(self.__id, value)
 
     def __str__(self):
         return str(self.__value)

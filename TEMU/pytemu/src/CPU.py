@@ -76,17 +76,6 @@ class CPU:
         self.__instr_count = int(self.__memory.load_file(instr_file, self.ENTRY_START) / 4)
         self.__memory.load_file(data_file, 0)
 
-    def pre_fetch(self, num):
-
-        a = ''
-        for i in range(-num, num):
-            ins = str(Decoder.decode_instr(self.__memory.read(self[RegList.PC.value].low32 + i * 4, 4)))
-            a += '    ' + f"{hex(self[RegList.PC.value].low32 + i * 4)} " \
-                 + f'{ins: ^30}' + '\n' if i != 0 \
-                else f'->  {hex(self[RegList.PC.value].low32 + i * 4)} ' \
-                     + f'{ins: ^30}' + '\n '
-        return a
-
     def step(self):
         self.__state = CPUState.RUNNING
         current_pc = self[RegList.PC.value].low32
@@ -142,12 +131,6 @@ class CPU:
                 self[RegList.PC.value].low32 = 0xBFC00380
                 return True
         return False
-
-    # print registers in two column
-    def print_registers(self):
-        for i in range(0, 34, 2):
-            in_print(f"${RegList(i).name} = {self[i].low32:08x} ${RegList(i + 1).name} = {self[i + 1].low32:08x}")
-        in_print(f"${RegList(35).name} = {self[35].low32:08x}")
 
     def registers(self):
         return self.__registers, self.__cp0
