@@ -1,7 +1,6 @@
 `include "defines.v"
 
 module wb_stage(
-    input  wire                   cpu_rst_n,
     // 从访存阶段获得的信息
     input  wire                   wb_mreg_i,
     input  wire [`BSEL_BUS      ] wb_dre_i,
@@ -24,10 +23,10 @@ module wb_stage(
     );
 
     //传至通用寄存器堆和HILO寄存器的信号
-    assign wb_wa_o      = (cpu_rst_n==`RST_ENABLE)?5'b0:wb_wa_i;
-    assign wb_wreg_o    = (cpu_rst_n==`RST_ENABLE)?1'b0:wb_wreg_i;
-    assign wb_whilo_o   = (cpu_rst_n==`RST_ENABLE)?1'b0:wb_whilo_i;
-    assign wb_hilo_o    = (cpu_rst_n==`RST_ENABLE)?64'b0:wb_hilo_i;
+    assign wb_wa_o      = wb_wa_i;
+    assign wb_wreg_o    = wb_wreg_i;
+    assign wb_whilo_o   = wb_whilo_i;
+    assign wb_hilo_o    = wb_hilo_i;
 
     //根据读字节使能信号，从数据存储器读出的数据中选择对应的字�?
     
@@ -35,7 +34,7 @@ module wb_stage(
     
     
     
-    wire [`WORD_BUS] data = (cpu_rst_n==`RST_ENABLE)? `ZERO_WORD:
+    wire [`WORD_BUS] data = 
                             (wb_dre_i==4'b1111)?{dm[7:0],dm[15:8],dm[23:16],dm[31:24]}:
                             (wb_dre_i==4'b1000 && wb_aluop_i==`MINIMIPS32_LB  )?{{24{dm[31]}},dm[31:24]}:
                             (wb_dre_i==4'b0100 && wb_aluop_i==`MINIMIPS32_LB)?{{24{dm[23]}},dm[23:16]}:
@@ -51,7 +50,7 @@ module wb_stage(
                             (wb_dre_i==4'b1100 && wb_aluop_i==`MINIMIPS32_LHU)?{16'b0,dm[23:16],dm[31:24]}:`ZERO_WORD;
                             
     //根据存储器到寄存器使能信号mreg，�?�择�?终待写入通用寄存器的数据
-    assign wb_wd_o      = (cpu_rst_n==`RST_ENABLE)?`ZERO_WORD:
+    assign wb_wd_o      =
                             (wb_mreg_i==`MREG_ENABLE)? data: wb_dreg_i;
     
 endmodule

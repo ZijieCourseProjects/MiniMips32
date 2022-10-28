@@ -1,7 +1,6 @@
 `include "defines.v"
 
 module exe_stage (
-    input wire                       cpu_rst_n,
     // ������׶λ�õ���Ϣ
     input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,  //3λ
     input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,    //8λ
@@ -36,10 +35,10 @@ module exe_stage (
     
     wire [`REG_BUS       ]      logicres;       // �����߼�����Ľ��
     wire [`REG_BUS       ]      shiftres;       //������λ������
-    wire [`REG_BUS       ]      moveres;        //�����ƶ������Ľ��
+    wire [`REG_BUS       ]      moveres;        //�����ƶ������Ľ��?
     wire [`REG_BUS       ]      hi_t;           //����HI�Ĵ���������ֵ
     wire [`REG_BUS       ]      lo_t;           //����LO�Ĵ���������ֵ
-    wire [`REG_BUS       ]      arithres;       //�������������Ľ��
+    wire [`REG_BUS       ]      arithres;       //�������������Ľ��?
     wire [`REG_BUS       ]      memres;         //����ô������ַ
     wire [`DOUBLE_REG_BUS       ]      mulres;         //����˷������Ľ��
           
@@ -53,9 +52,11 @@ module exe_stage (
                         (exe_aluop_i ==`MINIMIPS32_XOR)? (exe_src1_i ^ exe_src2_i):
                         (exe_aluop_i ==`MINIMIPS32_XORI)? (exe_src1_i ^ exe_src2_i):`ZERO_WORD;
     //�����ڲ�������aluop������λ����
+    wire signed [`REG_BUS       ] res;
+    assign res=(($signed(exe_src2_i)) >>>($signed(exe_src1_i)));
     assign shiftres = (exe_aluop_i ==`MINIMIPS32_SLL) ? (exe_src2_i <<exe_src1_i) :
-                      (exe_aluop_i ==`MINIMIPS32_SRA) ? (exe_src2_i >>>exe_src1_i):
-                      (exe_aluop_i ==`MINIMIPS32_SRAV)? (exe_src2_i >>>exe_src1_i):
+                      (exe_aluop_i ==`MINIMIPS32_SRA) ? res:
+                      (exe_aluop_i ==`MINIMIPS32_SRAV)? res:
                       (exe_aluop_i ==`MINIMIPS32_SLLV) ? (exe_src2_i <<exe_src1_i):
                       (exe_aluop_i ==`MINIMIPS32_SRLV) ? (exe_src2_i >>exe_src1_i):
                       (exe_aluop_i ==`MINIMIPS32_SRL) ? (exe_src2_i >>exe_src1_i):`ZERO_WORD;
@@ -85,7 +86,8 @@ module exe_stage (
                        (exe_aluop_i ==`MINIMIPS32_SLTU) ? ((exe_src1_i <exe_src2_i)? 32'b1:32'b0):`ZERO_WORD;
    
       //�����ڲ�������aluop���г˷����㣬������������һ�׶�
-      assign mulres =(exe_aluop_i ==`MINIMIPS32_MULT) ?($signed(exe_src1_i) * $signed(exe_src2_i)):
+       wire signed [`DOUBLE_REG_BUS] res1=($signed(exe_src1_i) * $signed(exe_src2_i));
+      assign mulres =(exe_aluop_i ==`MINIMIPS32_MULT) ?res1:
                      (exe_aluop_i ==`MINIMIPS32_MULTU) ?(exe_src1_i * exe_src2_i):
                      (exe_aluop_i ==`MINIMIPS32_MTHI) ? ({exe_src1_i,32'b0}):
                       (exe_aluop_i ==`MINIMIPS32_MTLO) ? ({32'b0,exe_src1_i}):`ZERO_DWORD;
