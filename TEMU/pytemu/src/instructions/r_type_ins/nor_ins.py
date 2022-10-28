@@ -1,5 +1,5 @@
 import instructions.r_type_ins.RIns as RIns
-from src.RegList import RegList
+from RegList import RegList
 
 
 class nor_ins(RIns.R_Ins):

@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class RegList(Enum):
+class RegList(int, Enum):
     ZERO = 0
     AT = 1
     V0 = 2
@@ -37,3 +37,7 @@ class RegList(Enum):
     PC = 32
     HI = 33
     LO = 34
+    BAD_VADDR = 48
+    STATUS = 52
+    CAUSE = 53
+    EPC = 54

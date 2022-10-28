@@ -2,6 +2,11 @@ import numpy as np
 
 
 class Memory:
+    KSEG0_BASE = 0x80000000
+    KSEG1_BASE = 0xA0000000
+
+    SEG_LENGTH = 0x1FFFFFFF
+
     COL_WIDTH = 10
     ROW_WIDTH = 10
     BANK_WIDTH = 3
@@ -21,6 +26,12 @@ class Memory:
         [('valid', np.bool_), ('row_index', np.uint32), ('buf', (np.uint8, NR_COL))])
 
     def resolve_dram_address(self, address):
+        if Memory.KSEG1_BASE <= address < Memory.KSEG1_BASE + Memory.SEG_LENGTH:
+            address -= Memory.KSEG1_BASE
+        elif Memory.KSEG0_BASE <= address < Memory.KSEG0_BASE + Memory.SEG_LENGTH:
+            address -= Memory.KSEG0_BASE
+        if address > self.HW_MEM_SIZE:
+            raise ValueError(f"Invalid memory address {address}")
         rank = address >> (self.COL_WIDTH + self.ROW_WIDTH + self.BANK_WIDTH)
         bank = (address >> (self.COL_WIDTH + self.ROW_WIDTH)) & ((1 << self.BANK_WIDTH) - 1)
         row = (address >> self.COL_WIDTH) & ((1 << self.ROW_WIDTH) - 1)
@@ -33,56 +44,58 @@ class Memory:
         for rb in self.__rowbufs:
             rb['valid'] = np.False_
 
+    # noinspection DuplicatedCode
     def ddr3_read(self, address):
-        if address > self.HW_MEM_SIZE:
-            raise ValueError(f"Invalid memory address {address}")
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
         if not rowbuf['valid'] or rowbuf['row_index'] != row:
             rowbuf['valid'] = np.True_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
-        return rowbuf['buf'][col:col + self.BURST_LEN]
+        return np.copy(rowbuf['buf'][col:col + self.BURST_LEN])
 
+    # noinspection DuplicatedCode
     def ddr3_write(self, address, data, mask):
-        if address > self.HW_MEM_SIZE:
-            raise ValueError(f"Invalid memory address {address}")
         rank, bank, row, col = self.resolve_dram_address(address & ~self.BURST_MASK)
         rowbuf = self.__rowbufs[rank, bank]
 
-        if not rowbuf.valid or rowbuf.row_index != row:
-            rowbuf['valid'] = np.False_
+        if not rowbuf['valid'] or rowbuf['row_index'] != row:
+            rowbuf['valid'] = np.True_
             rowbuf['row_index'] = row
             rowbuf['buf'] = self.__memory[rank, bank, row, :]
 
         for i in range(self.BURST_LEN):
             if mask[i]:
-                rowbuf.buf[col + i] = data[i]
+                rowbuf['buf'][col + i] = data.pop(0)
 
         self.__memory[rank, bank, row, :] = rowbuf['buf']
 
-    def read(self, address, len):
+    def read(self, address, length):
         offset = address & self.BURST_MASK
         data = self.ddr3_read(address)
-        if offset + len > self.BURST_LEN:
+        if offset + length > self.BURST_LEN:
             data = np.append(data, self.ddr3_read(address + self.BURST_LEN))
 
-        result = data[offset:offset + len]
+        result = data[offset:offset + length]
         ans = 0
-        for i in range(len):
-            ans = ans | (result[i] << (i * 8))
+        for i in range(length - 1, -1, -1):
+            ans = ans << 8 | result[i]
 
         return ans
 
-    def write(self, address, data, len):
+    def write(self, address, data, length):
         offset = address & self.BURST_MASK
         mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
-        mask[offset:offset + len] = 1
-        self.ddr3_write(address, data, mask)
-        if offset + len > self.BURST_LEN:
+        mask[offset:offset + length] = 1
+        splited_little_edian_data = []
+        for i in range(length):
+            splited_little_edian_data.append(data & 0xFF)
+            data >>= 8
+        self.ddr3_write(address, splited_little_edian_data, mask)
+        if offset + length > self.BURST_LEN:
             mask = np.zeros(self.BURST_LEN, dtype=np.uint8)
-            mask[0:offset + len - self.BURST_LEN] = 1
-            self.ddr3_write(address + self.BURST_LEN, data, mask)
+            mask[0:offset + length - self.BURST_LEN] = 1
+            self.ddr3_write(address + self.BURST_LEN, splited_little_edian_data, mask)
 
     def load_file(self, filepath, address):
         file = np.fromfile(filepath, dtype=np.uint8)
@@ -102,3 +115,4 @@ class Memory:
                         rank_idx += 1
                         if rank_idx == self.NR_RANK:
                             rank_idx = 0
+        return len(file)

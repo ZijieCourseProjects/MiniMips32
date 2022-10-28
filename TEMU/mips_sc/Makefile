@@ -19,7 +19,8 @@ LD := $(CROSS_COMPILE)ld
 OBJCOPY := $(CROSS_COMPILE)objcopy
 OBJDUMP := $(CROSS_COMPILE)objdump
 
-CFLAGS := -mips1 -EL
+CFLAGS := -mips32 -EL
+CMP_FLAGS := -mips32 -EL -mno-check-zero-division
 
 ifeq ($(DEBUG), true)
 CFLAGS += -g
@@ -46,7 +47,7 @@ all: inst.bin data.bin convert
 
 $(TESTCASE_BUILD_DIR)$(USER_PROGRAM).o: $(TESTCASE_SRC_DIR)$(USER_PROGRAM).S
 	@mkdir -p $(TESTCASE_BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CMP_FLAGS) -c $< -o $@
 
 $(TESTCASE_BUILD_DIR)$(USER_PROGRAM): default.ld $(OBJECTS)
 	$(LD) -T default.ld $(CFLAGS) $(OBJECTS) -o $@

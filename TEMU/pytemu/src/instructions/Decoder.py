@@ -1,6 +1,8 @@
-from instructions.r_type_ins import *
-from instructions.j_type_ins import *
 from instructions.i_type_ins import *
+from instructions.j_type_ins import *
+from instructions.nop_ins import nop_ins
+from instructions.pr_ins import *
+from instructions.r_type_ins import *
 
 
 class Decoder:
@@ -11,6 +13,14 @@ class Decoder:
         0x04: sllv_ins.sllv_ins,
         0x06: srlv_ins.srlv_ins,
         0x07: srav_ins.srav_ins,
+        0x08: jr_ins.jr_ins,
+        0x09: jalr_ins.jalr_ins,
+        0x0C: syscall_ins.syscall_ins,
+        0x0D: break_ins.break_ins,
+        0x10: mfhi_ins.mfhi_ins,
+        0x11: mthi_ins.mthi_ins,
+        0x12: mflo_ins.mflo_ins,
+        0x13: mtlo_ins.mtlo_ins,
         0x24: and_ins.and_ins,
         0x20: add_ins.add_ins,
         0x21: addu_ins.addu_ins,
@@ -28,6 +38,13 @@ class Decoder:
     }
 
     IJ_TYPE_OP = {
+        0x00: jr_ins.jr_ins,
+        0x01: bgez_ins.bgez_ins,
+        0x02: j_ins.j_ins,
+        0x04: beq_ins.beq_ins,
+        0x05: bne_ins.bne_ins,
+        0x06: blez_ins.blez_ins,
+        0x07: bgtz_ins.bgtz_ins,  # 待修改，不知道他要我们写的到底是哪8条，有OP字段一样的指令
         0x0F: lui_ins.lui_ins,
         0x0D: ori_ins.ori_ins,
         0x12: trap_ins.trap_ins,
@@ -36,8 +53,15 @@ class Decoder:
         0X0A: slti_ins.slti_ins,
         0x0B: sltiu_ins.sltiu_ins,
         0x0C: andi_ins.andi_ins,
-        0x0E: xori_ins.xori_ins
-
+        0x0E: xori_ins.xori_ins,
+        0x20: lb_ins.lb_ins,
+        0x21: lh_ins.lh_ins,
+        0x23: lw_ins.lw_ins,
+        0x24: lbu_ins.lbu_ins,
+        0x25: lhu_ins.lhu_ins,
+        0x28: sb_ins.sb_ins,
+        0x29: sh_ins.sh_ins,
+        0x2B: sw_ins.sw_ins,
     }
 
     @staticmethod
@@ -45,11 +69,25 @@ class Decoder:
         return Decoder.R_TYPE_FUNC[instr & 0x3f](instr)
 
     @staticmethod
+    def decode_privileged(instr):
+        if instr & (1 << 25):
+            return eret_ins.eret_ins(instr)
+        elif (instr >> 21) & 0x1f == 0:
+            return mfc0_ins.mfc0_ins(instr)
+        elif (instr >> 21) & 0x1f == 4:
+            return mtc0_ins.mtc0_ins(instr)
+        raise Exception(f"Unknown instruction: {hex(instr)}")
+
+    @staticmethod
     def decode_instr(instr):
         try:
+            if instr == 0:
+                return nop_ins(instr)
             if instr >> 26 == 0:
                 return Decoder.decode_r_type(instr)
+            elif instr >> 26 == 0x10:
+                return Decoder.decode_privileged(instr)
             else:
                 return Decoder.IJ_TYPE_OP[instr >> 26](instr)
         except KeyError:
-            raise Exception(f"Unknown instruction: {hex(instr)}")
+            return None

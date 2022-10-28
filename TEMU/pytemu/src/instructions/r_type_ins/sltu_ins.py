@@ -1,6 +1,6 @@
 import instructions.r_type_ins.RIns as RIns
-from src.RegList import RegList
-from ctypes import *
+from RegList import RegList
+
 
 class sltu_ins(RIns.R_Ins):
     def __init__(self, instruction):

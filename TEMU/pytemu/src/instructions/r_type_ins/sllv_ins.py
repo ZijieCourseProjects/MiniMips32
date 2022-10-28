@@ -1,6 +1,7 @@
+from ctypes import *
+
 import instructions.r_type_ins.RIns as RIns
 from RegList import RegList
-from ctypes import *
 
 
 class sllv_ins(RIns.R_Ins):

@@ -1,6 +1,8 @@
-from instructions.i_type_ins.IIns import I_Ins
-from src.RegList import RegList
 from ctypes import *
+
+from RegList import RegList
+from instructions.Instruction import signed_extend
+from instructions.i_type_ins.IIns import I_Ins
 
 
 class sltiu_ins(I_Ins):
@@ -8,10 +10,7 @@ class sltiu_ins(I_Ins):
         super().__init__(instruction)
 
     def execute(self, cpu):
-        if self._imm & 0x8000:
-            temp = c_int32(0xFFFF0000 | self._imm).value
-        else:
-            temp = c_int32(self._imm).value
+        temp = signed_extend(self._imm, 16)
         if c_uint32(temp).value > cpu[self._rs].low32:
             cpu[self._rt].low32 = 1
         else:

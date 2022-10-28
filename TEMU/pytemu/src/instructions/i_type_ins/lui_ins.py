@@ -1,5 +1,5 @@
-from instructions.i_type_ins.IIns import I_Ins
 from RegList import RegList
+from instructions.i_type_ins.IIns import I_Ins
 
 
 class lui_ins(I_Ins):

@@ -1,5 +1,5 @@
+from RegList import RegList
 from instructions.i_type_ins.IIns import I_Ins
-from src.RegList import RegList
 
 
 class xori_ins(I_Ins):
