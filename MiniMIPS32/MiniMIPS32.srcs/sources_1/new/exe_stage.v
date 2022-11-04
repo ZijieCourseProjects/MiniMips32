@@ -1,34 +1,107 @@
 `include "defines.v"
 
 module exe_stage (
-
-    // ´ÓÒëÂë½×¶Î»ñµÃµÄÐÅÏ¢
-    input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,
-    input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¶Î»ï¿½Ãµï¿½ï¿½ï¿½Ï¢
+    input  wire [`ALUTYPE_BUS	] 	exe_alutype_i,  //3Î»
+    input  wire [`ALUOP_BUS	    ] 	exe_aluop_i,    //8Î»
     input  wire [`REG_BUS 		] 	exe_src1_i,
     input  wire [`REG_BUS 		] 	exe_src2_i,
     input  wire [`REG_ADDR_BUS 	] 	exe_wa_i,
     input  wire 					exe_wreg_i,
+    input  wire                    exe_mreg_i,
+    input  wire [`REG_BUS]        exe_din_i,
+    input  wire [`WE_HILO]        exe_whilo_i,
+    
+    //ï¿½ï¿½HILOï¿½Ä´ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½
+    input  wire[`REG_BUS]         hi_i,
+    input  wire[`REG_BUS]         lo_i,
 
-    // ËÍÖÁÖ´ÐÐ½×¶ÎµÄÐÅÏ¢
+    // ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð½×¶Îµï¿½ï¿½ï¿½Ï¢
     output wire [`ALUOP_BUS	    ] 	exe_aluop_o,
     output wire [`REG_ADDR_BUS 	] 	exe_wa_o,
     output wire 					exe_wreg_o,
-    output wire [`REG_BUS 		] 	exe_wd_o
+    output wire [`REG_BUS 		] 	exe_wd_o,
+    output wire                    exe_mreg_o,
+    output wire [`REG_BUS]        exe_din_o,
+    output wire [`WE_HILO]        exe_whilo_o,
+    output wire [`DOUBLE_REG_BUS] exe_hilo_o
     );
 
-    // Ö±½Ó´«µ½ÏÂÒ»½×¶Î
+    // Ö±ï¿½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½×¶ï¿½
     assign exe_aluop_o = exe_aluop_i;
+    assign exe_mreg_o   = exe_mreg_i;
+    assign exe_din_o   = exe_din_i;
+    assign exe_whilo_o = exe_whilo_i;
     
-    wire [`REG_BUS       ]      logicres;       // ±£´æÂß¼­ÔËËãµÄ½á¹û
+    wire [`REG_BUS       ]      logicres;       // ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½
+    wire [`REG_BUS       ]      shiftres;       //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    wire [`REG_BUS       ]      moveres;        //ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿?
+    wire [`REG_BUS       ]      hi_t;           //ï¿½ï¿½ï¿½ï¿½HIï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    wire [`REG_BUS       ]      lo_t;           //ï¿½ï¿½ï¿½ï¿½LOï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    wire [`REG_BUS       ]      arithres;       //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿?
+    wire [`REG_BUS       ]      memres;         //ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·
+    wire [`DOUBLE_REG_BUS       ]      mulres;         //ï¿½ï¿½ï¿½ï¿½Ë·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½
+          
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluopï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½
+    assign logicres = (exe_aluop_i ==`MINIMIPS32_AND)? (exe_src1_i & exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_ORI)? (exe_src1_i | exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_LUI)? exe_src2_i :
+                        (exe_aluop_i ==`MINIMIPS32_ANDI)? (exe_src1_i & exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_NOR)? ~(exe_src1_i | exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_OR)? (exe_src1_i | exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_XOR)? (exe_src1_i ^ exe_src2_i):
+                        (exe_aluop_i ==`MINIMIPS32_XORI)? (exe_src1_i ^ exe_src2_i):`ZERO_WORD;
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluopï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
+    wire signed [`REG_BUS       ] res;
+    assign res=(($signed(exe_src2_i)) >>>($signed(exe_src1_i)));
+    assign shiftres = (exe_aluop_i ==`MINIMIPS32_SLL) ? (exe_src2_i <<exe_src1_i) :
+                      (exe_aluop_i ==`MINIMIPS32_SRA) ? res:
+                      (exe_aluop_i ==`MINIMIPS32_SRAV)? res:
+                      (exe_aluop_i ==`MINIMIPS32_SLLV) ? (exe_src2_i <<exe_src1_i):
+                      (exe_aluop_i ==`MINIMIPS32_SRLV) ? (exe_src2_i >>exe_src1_i):
+                      (exe_aluop_i ==`MINIMIPS32_SRL) ? (exe_src2_i >>exe_src1_i):`ZERO_WORD;
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluopï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½Âµï¿½HIï¿½ï¿½LOï¿½Ä´ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    assign hi_t = hi_i;
+    assign lo_t =lo_i;
+    assign moveres =(exe_aluop_i==`MINIMIPS32_MFHI)? hi_t:
+    (exe_aluop_i ==`MINIMIPS32_MFLO)? lo_t:`ZERO_WORD;
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluopï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    assign arithres = (exe_aluop_i ==`MINIMIPS32_ADD) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LB) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LW) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LBU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LH) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_LHU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SB) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SH) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SW) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_ADDIU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SUBU) ? (exe_src1_i+(~exe_src2_i)+1):
+                       (exe_aluop_i ==`MINIMIPS32_SLT) ? (($signed(exe_src1_i) <$signed(exe_src2_i))? 32'b1:32'b0):
+                       (exe_aluop_i ==`MINIMIPS32_SLTIU) ? ((exe_src1_i <exe_src2_i)? 32'b1:32'b0):
+                       (exe_aluop_i ==`MINIMIPS32_ADDU) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_ADDI) ? (exe_src1_i+exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SUB)  ?  (exe_src1_i-exe_src2_i):
+                       (exe_aluop_i ==`MINIMIPS32_SLTI) ? (($signed(exe_src1_i) <$signed(exe_src2_i))? 32'b1:32'b0):
+                       (exe_aluop_i ==`MINIMIPS32_SLTU) ? ((exe_src1_i <exe_src2_i)? 32'b1:32'b0):`ZERO_WORD;
+   
+      //ï¿½ï¿½ï¿½ï¿½ï¿½Ú²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½aluopï¿½ï¿½ï¿½Ð³Ë·ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½×¶ï¿½
+       wire signed [`DOUBLE_REG_BUS] res1=($signed(exe_src1_i) * $signed(exe_src2_i));
+      assign mulres =(exe_aluop_i ==`MINIMIPS32_MULT) ?res1:
+                     (exe_aluop_i ==`MINIMIPS32_MULTU) ?(exe_src1_i * exe_src2_i):
+                     (exe_aluop_i ==`MINIMIPS32_MTHI) ? ({exe_src1_i,32'b0}):
+                      (exe_aluop_i ==`MINIMIPS32_MTLO) ? ({32'b0,exe_src1_i}):`ZERO_DWORD;
+      assign exe_hilo_o = (exe_aluop_i ==`MINIMIPS32_MULT ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MULTU ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MTHI ) ? mulres :
+                          (exe_aluop_i ==`MINIMIPS32_MTLO ) ? mulres :`ZERO_DWORD;
+      assign exe_wa_o =exe_wa_i;
+      assign exe_wreg_o = exe_wreg_i;
     
-    // ¸ù¾ÝÄÚ²¿²Ù×÷Âëaluop½øÐÐÂß¼­ÔËËã
-    assign logicres = (exe_aluop_i == `MINIMIPS32_AND )  ? (exe_src1_i & exe_src2_i) : `ZERO_WORD;
-
-    assign exe_wa_o   = exe_wa_i;
-    assign exe_wreg_o = exe_wreg_i;
-    
-    // ¸ù¾Ý²Ù×÷ÀàÐÍalutypeÈ·¶¨Ö´ÐÐ½×¶Î×îÖÕµÄÔËËã½á¹û£¨¼È¿ÉÄÜÊÇ´ýÐ´ÈëÄ¿µÄ¼Ä´æÆ÷µÄÊý¾Ý£¬Ò²¿ÉÄÜÊÇ·ÃÎÊÊý¾Ý´æ´¢Æ÷µÄµØÖ·£©
-    assign exe_wd_o = (exe_alutype_i == `LOGIC    ) ? logicres  : `ZERO_WORD;
+    // ï¿½ï¿½ï¿½Ý²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½alutypeÈ·ï¿½ï¿½Ö´ï¿½Ð½×¶ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½Ç´ï¿½Ð´ï¿½ï¿½Ä¿ï¿½Ä¼Ä´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý´æ´¢ï¿½ï¿½ï¿½Äµï¿½Ö·ï¿½ï¿½
+    assign exe_wd_o = (exe_alutype_i == `LOGIC    ) ? logicres  : 
+                       (exe_alutype_i == `SHIFT    ) ? shiftres  :
+                       (exe_alutype_i == `MOVE     ) ? moveres  :
+                       (exe_alutype_i == `ARITH    ) ? arithres  :`ZERO_WORD;
 
 endmodule

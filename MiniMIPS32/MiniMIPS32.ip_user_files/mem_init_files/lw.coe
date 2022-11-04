@@ -1,0 +1,7 @@
+memory_initialization_radix = 16;
+memory_initialization_vector =
+020041a4
+01004380
+01004490
+02004484
+02004494
