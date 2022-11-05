@@ -1,7 +1,6 @@
 `include "defines.v"
 
 module wb_stage(
-    // 从访存阶段获得的信息
     input  wire                   wb_mreg_i,
     input  wire [`BSEL_BUS      ] wb_dre_i,
 	input  wire [`REG_ADDR_BUS  ] wb_wa_i,
@@ -11,10 +10,10 @@ module wb_stage(
     input  wire [`DOUBLE_REG_BUS] wb_hilo_i,
     input  wire [`ALUOP_BUS     ]   wb_aluop_i,
 
-    // 从数据存储器读出的数�?
+    // data from memory
     input  wire [`WORD_BUS] dm,
 
-    // 写回目的寄存器的数据
+    // data to write back
     output wire [`REG_ADDR_BUS  ] wb_wa_o,
 	output wire                   wb_wreg_o,
     output wire [`WORD_BUS      ] wb_wd_o,
@@ -22,19 +21,14 @@ module wb_stage(
     output wire [`DOUBLE_REG_BUS] wb_hilo_o
     );
 
-    //传至通用寄存器堆和HILO寄存器的信号
+    // write back to general register file and HILO register
     assign wb_wa_o      = wb_wa_i;
     assign wb_wreg_o    = wb_wreg_i;
     assign wb_whilo_o   = wb_whilo_i;
     assign wb_hilo_o    = wb_hilo_i;
 
-    //根据读字节使能信号，从数据存储器读出的数据中选择对应的字�?
-    
-    
-    
-    
-    
-    wire [`WORD_BUS] data = 
+    //Select the corresponding word from the data read from the data memory according to the read byte enable signal
+    wire [`WORD_BUS] data =
                             (wb_dre_i==4'b1111)?{dm[7:0],dm[15:8],dm[23:16],dm[31:24]}:
                             (wb_dre_i==4'b1000 && wb_aluop_i==`MINIMIPS32_LB  )?{{24{dm[31]}},dm[31:24]}:
                             (wb_dre_i==4'b0100 && wb_aluop_i==`MINIMIPS32_LB)?{{24{dm[23]}},dm[23:16]}:
@@ -48,9 +42,8 @@ module wb_stage(
                             (wb_dre_i==4'b1100 && wb_aluop_i==`MINIMIPS32_LH)?{{24{dm[23]}},dm[23:16],dm[31:24]}:
                             (wb_dre_i==4'b0011 && wb_aluop_i==`MINIMIPS32_LHU)?{16'b0,dm[7:0],dm[15:8]}:
                             (wb_dre_i==4'b1100 && wb_aluop_i==`MINIMIPS32_LHU)?{16'b0,dm[23:16],dm[31:24]}:`ZERO_WORD;
-                            
-    //根据存储器到寄存器使能信号mreg，�?�择�?终待写入通用寄存器的数据
-    assign wb_wd_o      =
-                            (wb_mreg_i==`MREG_ENABLE)? data: wb_dreg_i;
-    
+
+    //Select the data to be written to the general register file according to the memory to register enable signal mreg
+    assign wb_wd_o      =   (wb_mreg_i==`MREG_ENABLE)? data: wb_dreg_i;
+
 endmodule

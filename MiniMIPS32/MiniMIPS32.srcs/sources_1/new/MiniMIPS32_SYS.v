@@ -10,11 +10,11 @@ module MiniMIPS32_SYS(
     wire [`INST_ADDR_BUS] iaddr;
     wire                  ice;
     wire [`INST_BUS     ] inst;
-    wire                 dce;
-    wire[`INST_ADDR_BUS] daddr;
-    wire[`BSEL_BUS]      we;
-    wire[`INST_BUS]      din;
-    wire[`INST_BUS]      dout;
+    wire                  dce;
+    wire[`INST_ADDR_BUS]  daddr;
+    wire[`BSEL_BUS]       we;
+    wire[`INST_BUS]       din;
+    wire[`INST_BUS]       dout;
 
     clkdiv clocking
    (
@@ -26,10 +26,10 @@ module MiniMIPS32_SYS(
     );    
     
     inst_rom inst_rom0 (
-      .clka(cpu_clk_50M),    // input wire clka
-      .ena(ice),      // input wire ena
-      .addra(iaddr[12:2]),  // input wire [10 : 0] addra
-      .douta(inst)  // output wire [31 : 0] douta
+      .clka(cpu_clk_50M),       // input wire clka
+      .ena(ice),                // input wire ena
+      .addra(iaddr[12:2]),      // input wire [10 : 0] addra
+      .douta(inst)              // output wire [31 : 0] douta
     );
 
     MiniMIPS32 minimips32 (
@@ -46,12 +46,12 @@ module MiniMIPS32_SYS(
     );
    
    data_ram data_ram0(
-  .clka(cpu_clk_50M),    // input wire clka
-  .ena(dce),      // input wire ena
-  .wea(we),      // input wire [3 : 0] wea
+  .clka(cpu_clk_50M),   // input wire clka
+  .ena(dce),            // input wire ena
+  .wea(we),             // input wire [3 : 0] wea
   .addra(daddr[12:2]),  // input wire [10 : 0] addra
-  .dina(din),    // input wire [31 : 0] dina
-  .douta(dout)  // output wire [31 : 0] douta
+  .dina(din),           // input wire [31 : 0] dina
+  .douta(dout)          // output wire [31 : 0] douta
   );
 
 endmodule

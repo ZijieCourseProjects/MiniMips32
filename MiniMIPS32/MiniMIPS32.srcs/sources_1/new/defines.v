@@ -1,44 +1,44 @@
 `timescale 1ns / 1ps
 
-/*------------------- ȫ�ֲ��� -------------------*/
-`define RST_ENABLE      1'b0                // ��λ�ź���Ч  RST_ENABLE
-`define RST_DISABLE     1'b1                // ��λ�ź���Ч
-`define ZERO_WORD       32'h00000000        // 32λ����ֵ0
-`define ZERO_DWORD      64'b0               // 64λ����ֵ0
-`define WRITE_ENABLE    1'b1                // ʹ��д
-`define WRITE_DISABLE   1'b0                // ��ֹд
-`define READ_ENABLE     1'b1                // ʹ�ܶ�
-`define READ_DISABLE    1'b0                // ��ֹ��
-`define ALUOP_BUS       7 : 0               // ����׶ε����aluop_o�Ŀ���
-`define WE_HILO         1: 0                //hilo�Ĵ���дʹ�ܿ���
-`define SHIFT_ENABLE    1'b1                // ��λָ��ʹ�� 
-`define ALUTYPE_BUS     2 : 0               // ����׶ε����alutype_o�Ŀ���  
-`define TRUE_V          1'b1                // �߼�"��"  
-`define FALSE_V         1'b0                // �߼�"��"  
-`define CHIP_ENABLE     1'b1                // оƬʹ��  
-`define CHIP_DISABLE    1'b0                // оƬ��ֹ  
-`define WORD_BUS        31: 0               // 32λ��
-`define DOUBLE_REG_BUS  63: 0               // ������ͨ�üĴ����������߿���
-`define RT_ENABLE       1'b1                // rtѡ��ʹ��
-`define SIGNED_EXT      1'b1                // ������չʹ��
-`define IMM_ENABLE      1'b1                // ������ѡ��ʹ��
-`define UPPER_ENABLE    1'b1                // ��������λʹ��
-`define MREG_ENABLE     1'b1                // д�ؽ׶δ洢�����ѡ���ź�
-`define BSEL_BUS        3 : 0               // ���ݴ洢���ֽ�ѡ���źſ���
-`define PC_INIT         32'hBFC00000        // PC��ʼֵ
+/*------------------- Global Signal -------------------*/
+`define RST_ENABLE      1'b0                // Enable Reset signal  RST_ENABLE
+`define RST_DISABLE     1'b1                // Disable reset signal
+`define ZERO_WORD       32'h00000000        // 32-bit zero
+`define ZERO_DWORD      64'b0               // 64-bit zero
+`define WRITE_ENABLE    1'b1                
+`define WRITE_DISABLE   1'b0                
+`define READ_ENABLE     1'b1                
+`define READ_DISABLE    1'b0                
+`define ALUOP_BUS       7 : 0               // width of aluop_o signal in ID stage 
+`define WE_HILO         1: 0                // write enable signal of hilo register
+`define SHIFT_ENABLE    1'b1                
+`define ALUTYPE_BUS     2 : 0               // width of aluotype_o signal in ID stage 
+`define TRUE_V          1'b1                // logical true  
+`define FALSE_V         1'b0                // logical false
+`define CHIP_ENABLE     1'b1                
+`define CHIP_DISABLE    1'b0                
+`define WORD_BUS        31: 0               // 32bit width
+`define DOUBLE_REG_BUS  63: 0               // double width of register data signal
+`define RT_ENABLE       1'b1                // RTSEL enable
+`define SIGNED_EXT      1'b1                // sign extension enable
+`define IMM_ENABLE      1'b1                // IMMSEL enable
+`define UPPER_ENABLE    1'b1                // IMMSHIFT enable
+`define MREG_ENABLE     1'b1                // Memory to register enable
+`define BSEL_BUS        3 : 0               // Memory byte select signal
+`define PC_INIT         32'hBFC00000        // Start of text segment
 
-/*------------------- ָ���ֲ��� -------------------*/
-`define INST_ADDR_BUS   31: 0               // ָ��ĵ�ַ����
-`define INST_BUS        31: 0               // ָ������ݿ���
+/*------------------- ָInstruction signal -------------------*/
+`define INST_ADDR_BUS   31: 0               // ָWidth of INSTR MEM ADDR
+`define INST_BUS        31: 0               // ָWidth of Insturction Word
 
-// ��������alutype
+// alutype
 `define NOP             3'b000
 `define ARITH           3'b001
 `define LOGIC           3'b010
 `define MOVE            3'b011
 `define SHIFT           3'b100
 
-// �ڲ�������aluop
+// aluop
 `define MINIMIPS32_LUI             8'h05
 `define MINIMIPS32_SRLV            8'h09
 `define MINIMIPS32_SRL             8'h0A
@@ -59,12 +59,12 @@
 `define MINIMIPS32_SUBU            8'h1B
 `define MINIMIPS32_AND             8'h1C
 `define MINIMIPS32_ORI             8'h1D
-`define  MINIMIPS32_SUB            8'h1E
-`define  MINIMIPS32_ANDI           8'h1F
-`define  MINIMIPS32_NOR            8'h20
-`define  MINIMIPS32_OR             8'h21
-`define  MINIMIPS32_XOR            8'h22
-`define  MINIMIPS32_XORI           8'h23
+`define MINIMIPS32_SUB             8'h1E
+`define MINIMIPS32_ANDI            8'h1F
+`define MINIMIPS32_NOR             8'h20
+`define MINIMIPS32_OR              8'h21
+`define MINIMIPS32_XOR             8'h22
+`define MINIMIPS32_XORI            8'h23
 `define MINIMIPS32_SLTU            8'h24
 `define MINIMIPS32_SLTI            8'h25
 `define MINIMIPS32_SLT             8'h26
@@ -78,8 +78,8 @@
 `define MINIMIPS32_SH              8'h99
 `define MINIMIPS32_SW              8'h9A
 
-/*------------------- ͨ�üĴ����Ѳ��� -------------------*/
-`define REG_BUS         31: 0               // �Ĵ������ݿ���
-`define REG_ADDR_BUS    4 : 0               // �Ĵ����ĵ�ַ����
-`define REG_NUM         32                  // �Ĵ�������32��
-`define REG_NOP         5'b00000            // ��żĴ���
+/*------------------- ͨRegister Configeration -------------------*/
+`define REG_BUS         31: 0               // Width of register data
+`define REG_ADDR_BUS    4 : 0               // Width of Register Address
+`define REG_NUM         32                  // Number of GPRs
+`define REG_NOP         5'b00000            // 0th Register

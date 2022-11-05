@@ -1,11 +1,10 @@
 `include "defines.v"
 
 module memwb_reg (
-    input  wire                     cpu_clk_50M,
+  input  wire                     cpu_clk_50M,
 	input  wire                     cpu_rst_n,
 
 
-	// 来自访存阶段的信�?
 	input  wire [`ALUOP_BUS     ]   mem_aluop,
 	input  wire [`REG_ADDR_BUS  ]   mem_wa,
 	input  wire                     mem_wreg,
@@ -15,7 +14,6 @@ module memwb_reg (
 	input  wire [`WE_HILO]          mem_whilo,
 	input  wire [`DOUBLE_REG_BUS]   mem_hilo,
 
-	// 送至写回阶段的信�? 
 	output reg  [`REG_ADDR_BUS  ]   wb_wa,
 	output reg                      wb_wreg,
 	output reg  [`REG_BUS       ]   wb_dreg,
@@ -27,7 +25,6 @@ module memwb_reg (
     );
 
     always @(posedge cpu_clk_50M) begin
-		// 复位的时候将送至写回阶段的信息清0
 		if (cpu_rst_n == `RST_ENABLE) begin
 			wb_wa       <= `REG_NOP;
 			wb_wreg     <= `WRITE_DISABLE;
@@ -38,7 +35,6 @@ module memwb_reg (
 			wb_hilo     <= `ZERO_DWORD;
 			wb_aluop    <=  8'b0;
 		end
-		// 将来自访存阶段的信息寄存并�?�至写回阶段
 		else begin
 			wb_wa 	    <= mem_wa;
 			wb_wreg     <= mem_wreg;

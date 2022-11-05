@@ -24,33 +24,28 @@
 
 
 module hilo(
-    input   wire       cpu_clk_50M,
-    input   wire       cpu_rst_n,
+    input   wire                    cpu_clk_50M,
+    input   wire                    cpu_rst_n,
     
-    //写端口
-    input   wire[`WE_HILO]       we,
-    input   wire[`REG_BUS]      hi_i,
-    input   wire[`REG_BUS]      lo_i,
+    input   wire[`WE_HILO]          we,
+    input   wire[`REG_BUS]          hi_i,
+    input   wire[`REG_BUS]          lo_i,
     
-    //读端口
-    output  reg [`REG_BUS]      hi_o,
-    output  reg [`REG_BUS]      lo_o
+    output  reg [`REG_BUS]          hi_o,
+    output  reg [`REG_BUS]          lo_o
     );
     
     always @(posedge cpu_clk_50M) begin
         if(we==2'b11) begin
-        hi_o<=hi_i;//将乘法结果mulres的前32位给HI寄存器
-        lo_o<=lo_i;//将乘法结果mulres的后32位给IO寄存器
+            hi_o <= hi_i;
+            lo_o <= lo_i;
         end
-        
         else if(we==2'b10)
-        hi_o<=hi_i;//将MTHI的前32位给HI寄存器
+            hi_o<=hi_i;
         
         else if(we==2'b01)
-        lo_o<=lo_i;//将MTLO的后32位给IO寄存器
-        
+            lo_o<=lo_i;
         else;
-    
     end
     
 endmodule
