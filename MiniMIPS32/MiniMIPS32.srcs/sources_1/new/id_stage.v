@@ -21,7 +21,7 @@ module id_stage(
     input wire                      mem2id_wreg,
     input wire [`REG_ADDR_BUS  ]    mem2id_wa,
     input wire [`INST_BUS      ]    mem2id_wd,
-      
+    input  wire [`INST_ADDR_BUS]    pc_plus_4,  
     // Decode information to be used in execution stage
     output wire [`ALUTYPE_BUS  ]    id_alutype_o,
     output wire [`ALUOP_BUS    ]    id_aluop_o,
@@ -37,7 +37,12 @@ module id_stage(
 
     // register address to register file
     output wire [`REG_ADDR_BUS ]    ra1,
-    output wire [`REG_ADDR_BUS ]    ra2
+    output wire [`REG_ADDR_BUS ]    ra2,
+    output wire [`INST_ADDR_BUS]    jump_addr_1,
+    output wire [`INST_ADDR_BUS]    jump_addr_2,
+    output wire [`INST_ADDR_BUS]    jump_addr_3,
+    output wire [1:0]          jtsel,
+    output wire [`INST_ADDR_BUS]    ret_addr
     );
 
     // arrange the word in little edian
@@ -105,46 +110,82 @@ module id_stage(
     wire inst_lh  = op[5]&~op[4]&~op[3]& ~op[2]&~op[1]& op[0];
     wire inst_lhu = op[5]&~op[4]&~op[3]& op[2]&~op[1]& op[0];
     wire inst_sh  = op[5]&~op[4]& op[3]& ~op[2]&~op[1]& op[0];
+    //jump
+    wire inst_j =~op[5]&~op[4]&~op[3]&~op[2]&op[1]&~op[0];
+    wire inst_jal=~op[5]&~op[4]&~op[3]&~op[2]&op[1]&op[0];
+    wire inst_jr=inst_reg& ~func[5]& ~func[4]& func[3]& ~func[2]& ~func[1]& ~func[0];
+    wire inst_beq=~op[5]&~op[4]&~op[3]&op[2]&~op[1]&~op[0];
+    wire inst_bne=~op[5]&~op[4]&~op[3]&op[2]&~op[1]&op[0];
+    wire inst_bgez=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
+    wire inst_bgtz=~op[5]&~op[4]&~op[3]&op[2]&op[1]&op[0];
+    wire inst_blez=~op[5]&~op[4]&~op[3]&op[2]&op[1]&~op[0];
+    wire inst_bltz=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
+    wire inst_bltzal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
+    wire inst_bgezal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
+   // wire inst_jalr=inst_reg& ~func[5]&~func[4]&func[3]& ~func[2]&~func[1]&func[0];
     /*------------------------------------------------------------------------------*/
-
+    //signal for equal
+    wire equ=(inst_beq)?(id_src1_o==id_src2_o):
+              (inst_bne)?(id_src1_o != id_src2_o): 
+              (inst_bgez)?(id_src1_o >=0): 
+              (inst_bgtz)?(id_src1_o >0): 
+              (inst_blez)?(id_src1_o <=0): 
+              (inst_bltz)?(id_src1_o <0): 
+              (inst_bltzal)?(id_src1_o <0): 
+              (inst_bgezal)?(id_src1_o >=0): 1'b0;
     /*-------------------- Step2: generate sepcific controlling signal --------------------*/
     // operate_type
-    assign id_alutype_o[2] = (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl);
+    assign id_alutype_o[2] = (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl|
+                                inst_j|inst_jal|inst_jr|inst_beq|inst_bne|
+                                inst_bgez|inst_bgtz|inst_blez|inst_bltz|inst_bltzal|inst_bgezal);
     assign id_alutype_o[1] = (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui|inst_andi|inst_nor|inst_or|inst_xor|inst_xori);
     assign id_alutype_o[0] = (inst_add|inst_subu|inst_slt|inst_mfhi|inst_mflo|
                                inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
-                               inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_slti|inst_sltu);
+                               inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_slti|inst_sltu
+                               |inst_j|inst_jal|inst_jr|inst_beq|inst_bne|
+                               inst_bgez|inst_bgtz|inst_blez|inst_bltz|inst_bltzal|inst_bgezal);
 
     // OP-code
     assign id_aluop_o[7] = (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh);
     assign id_aluop_o[6] = 1'b0;
-    assign id_aluop_o[5] = (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori);
+    assign id_aluop_o[5] = (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori
+                            |inst_j|inst_jal|inst_jr|inst_beq|inst_bne);
     assign id_aluop_o[4] = (inst_add|inst_subu|inst_and|inst_mult|inst_sll|
                              inst_ori|inst_addiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                              inst_addi|inst_multu|inst_sra|inst_srav|inst_sub|inst_lbu|
-                             inst_lh|inst_lhu|inst_sh|inst_andi);
+                             inst_lh|inst_lhu|inst_sh|inst_andi
+                             |inst_beq|inst_bne);
 
     assign id_aluop_o[3] =   (inst_add|inst_subu|inst_and|inst_mfhi|inst_mflo|
                                inst_ori|inst_addiu|inst_sb|inst_sw|inst_addi|inst_sub|
-                               inst_mthi|inst_mtlo|inst_sh|inst_andi|inst_sllv|inst_srlv|inst_srl);
+                               inst_mthi|inst_mtlo|inst_sh|inst_andi|inst_sllv|inst_srlv|inst_srl
+                               |inst_j|inst_jal|inst_jr);
 
     assign id_aluop_o[2] =   (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
-                               inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi);
+                               inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi
+                               |inst_j|inst_jal|inst_jr);
 
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
-                              inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl);
+                              inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl
+                              |inst_jal);
 
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
-                              inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv);
+                              inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
+                              |inst_bne|inst_jr);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
                                inst_lb|inst_lw|inst_addu|inst_addi|inst_sra|inst_srav|inst_sub|
-                               inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl);
-
+                               inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl
+                               |inst_jal|inst_bltzal|inst_bgezal);
+    assign rreg1=inst_add|inst_subu|inst_slt|inst_and|inst_mult|
+                 inst_ori|inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|
+                 inst_jr|inst_beq|inst_bne;
+    assign rreg2=inst_add|inst_subu|inst_slt|inst_and|inst_mult|inst_sll|
+                 inst_sb|inst_sw|inst_beq|inst_bne; 
 
     //enabling signal for writing hilo register
     assign id_whilo_o[1] = (inst_mult|inst_multu|inst_mthi);
@@ -168,7 +209,11 @@ module id_stage(
 
     //signal for high semi-word signal
     wire upper = inst_lui;
-
+    //signal for Subroutine calls 
+    wire jal=inst_jal|inst_bltzal|inst_bgezal;
+    //signal for choose address
+    assign jtsel[1]=inst_jr|inst_beq&equ|inst_bne&equ|inst_bgez&equ|inst_bgtz&equ|inst_blez&equ|inst_bltz&equ|inst_bltzal&equ|inst_bgezal&equ;
+    assign jtsel[0]=inst_j|inst_jal|inst_beq&equ|inst_bne&equ|inst_bgez&equ|inst_bgtz&equ|inst_blez&equ|inst_bltz&equ|inst_bltzal&equ|inst_bgezal&equ;
     //memory to register signal
     assign id_mreg_o = (inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
 
@@ -182,7 +227,8 @@ module id_stage(
                            {{16{1'b0}},imm};
 
     // address of destination register to write
-    assign id_wa_o = (rtsel == `RT_ENABLE)? rt:rd;
+    assign id_wa_o = (rtsel == `RT_ENABLE)? rt:
+                      (jal==`TRUE_V)?5'b11111:rd;
 
     //data to be written into the memory
     assign id_din_o = rd2;
@@ -192,7 +238,16 @@ module id_stage(
                       
     wire [1:0] fwrd2=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra2)? 2'b01:
                       (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra2)? 2'b10:2'b11; 
-         
+    //signal for commit address
+    wire [`INST_ADDR_BUS]pc_plus_8 =pc_plus_4+4;
+    wire [`JUMP_BUS]     instr_index=id_inst[25:0];
+    wire [`INST_ADDR_BUS]imm_jump={{14{imm[15]}},imm,2'b00};
+    assign jump_addr_1={pc_plus_4[31:28],instr_index,2'b00};
+    assign jump_addr_2=pc_plus_4+imm_jump;
+    assign jump_addr_3=id_src1_o;
+    // shift count if shift signal is active, else data from register port 1
+    //address for return
+    assign ret_addr=pc_plus_8;
      
                      
 
