@@ -23,6 +23,8 @@ module exe_stage (
     input  wire [`WE_HILO]          wb2exe_whilo,
     input  wire [`DOUBLE_REG_BUS]   wb2exe_hilo,
 
+    input  wire [`INST_ADDR_BUS]    ret_addr,
+
     output wire [`ALUOP_BUS	    ] 	exe_aluop_o,
     output wire [`REG_ADDR_BUS 	] 	exe_wa_o,
     output wire 					exe_wreg_o,
@@ -115,7 +117,8 @@ module exe_stage (
     // it could be either the data to be written to a register or the address of memory space to read in next stage.
     assign exe_wd_o = (exe_alutype_i == `LOGIC    )  ? logicres  :
                       (exe_alutype_i == `SHIFT    )  ? shiftres  :
-                      (exe_alutype_i == `MOVE     )  ? moveres  :
-                      (exe_alutype_i == `ARITH    )  ? arithres  :`ZERO_WORD;
+                      (exe_alutype_i == `MOVE     )  ? moveres   :
+                      (exe_alutype_i == `ARITH    )  ? arithres  :
+                      (exe_alutype_i == `JUMP     )  ? ret_addr  :`ZERO_WORD;
 
 endmodule
