@@ -13,6 +13,7 @@ module idexe_reg (
     input  wire                     id_mreg,
     input  wire [`REG_BUS]          id_din,
     input  wire [`WE_HILO]          id_whilo,
+    input  wire [`REG_BUS]          id_ret_addr,
 
     output reg  [`ALUTYPE_BUS  ]  exe_alutype,
     output reg  [`ALUOP_BUS    ]  exe_aluop,
@@ -22,7 +23,8 @@ module idexe_reg (
     output reg                    exe_wreg,
     output reg                    exe_mreg,
     output reg  [`REG_BUS]        exe_din,
-    output reg  [`WE_HILO]        exe_whilo
+    output reg  [`WE_HILO]        exe_whilo,
+    output reg  [`REG_BUS]        exe_ret_addr
     );
 
     always @(posedge cpu_clk_50M) begin
@@ -36,6 +38,7 @@ module idexe_reg (
             exe_mreg           <= `FALSE_V;
             exe_din            <= `ZERO_WORD;
             exe_whilo          <= `WRITE_DISABLE;
+            exe_ret_addr       <= `ZERO_WORD;
         end
         else begin
             exe_alutype 	   <= id_alutype;
@@ -47,6 +50,7 @@ module idexe_reg (
             exe_mreg           <= id_mreg;
             exe_din            <= id_din;
             exe_whilo          <= id_whilo;
+            exe_ret_addr       <= id_ret_addr;
         end
     end
 

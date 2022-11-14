@@ -26,6 +26,9 @@
 `define MREG_ENABLE     1'b1                // Memory to register enable
 `define BSEL_BUS        3 : 0               // Memory byte select signal
 `define PC_INIT         32'hBFC00000        // Start of text segment
+`define JUMP_BUS        25: 0
+`define JTSEL_BUS       1 : 0
+
 
 /*------------------- ָInstruction signal -------------------*/
 `define INST_ADDR_BUS   31: 0               // ָWidth of INSTR MEM ADDR
@@ -37,6 +40,7 @@
 `define LOGIC           3'b010
 `define MOVE            3'b011
 `define SHIFT           3'b100
+`define JUMP            3'b101
 
 // aluop
 `define MINIMIPS32_LUI             8'h05
@@ -77,6 +81,11 @@
 `define MINIMIPS32_SB              8'h98
 `define MINIMIPS32_SH              8'h99
 `define MINIMIPS32_SW              8'h9A
+`define MINIMIPS32_J               8'h2C
+`define MINIMIPS32_JR              8'h2D
+`define MINIMIPS32_JAL             8'h2E
+`define MINIMIPS32_BEQ             8'h30
+`define MINIMIPS32_BNE             8'h31
 
 /*------------------- ͨRegister Configeration -------------------*/
 `define REG_BUS         31: 0               // Width of register data
