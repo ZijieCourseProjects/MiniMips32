@@ -58,20 +58,28 @@ module regfile(
 		end
 	end
 
+    // read operation of rd1
 	always @(*) begin
 		if (cpu_rst_n == `RST_ENABLE)
 			rd1 <= `ZERO_WORD;
 		else if (ra1 == `REG_NOP)
 			rd1 <= `ZERO_WORD;
+		// Determine if there is a ID-WB correlation for rd1
+		else if ((we == `WRITE_ENABLE)&&(wa == ra1))
+		    rd1 <= wd;
 		else
 			rd1 <= regs[ra1];
 	end
 
+    // read operation of rd2
 	always @(*) begin
 		if (cpu_rst_n == `RST_ENABLE)
 			rd2 <= `ZERO_WORD;
 		else if (ra2 == `REG_NOP)
 			rd2 <= `ZERO_WORD;
+		// Determine if there is a ID-WB correlation for rd2
+		else if ((we == `WRITE_ENABLE)&&(wa == ra2))
+		    rd2 <= wd;
 		else
 			rd2 <= regs[ra2];
 	end
