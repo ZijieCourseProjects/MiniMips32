@@ -11,7 +11,17 @@ module id_stage(
     // data from GPR
     input  wire [`REG_BUS      ]    rd1,
     input  wire [`REG_BUS      ]    rd2,
-
+    
+        //write enable from exe stage
+    input wire                      exe2id_wreg,
+    input wire [`REG_ADDR_BUS  ]    exe2id_wa,
+    input wire [`INST_BUS      ]    exe2id_wd,
+    
+    //write enable from mem stage
+    input wire                      mem2id_wreg,
+    input wire [`REG_ADDR_BUS  ]    mem2id_wa,
+    input wire [`INST_BUS      ]    mem2id_wd,
+      
     // Decode information to be used in execution stage
     output wire [`ALUTYPE_BUS  ]    id_alutype_o,
     output wire [`ALUOP_BUS    ]    id_aluop_o,
@@ -176,11 +186,30 @@ module id_stage(
 
     //data to be written into the memory
     assign id_din_o = rd2;
+    //generate signal to choose sorce operand
+    wire [1:0] fwrd1=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra1)? 2'b01:
+                      (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra1)? 2'b10:2'b11;
+                      
+    wire [1:0] fwrd2=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra2)? 2'b01:
+                      (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra2)? 2'b10:2'b11; 
+         
+     
+                     
 
     // shift count if shift signal is active, else data from register port 1
 
-    assign id_src1_o = (shift == `SHIFT_ENABLE) ? {27'b0,sa}: rd1;
+    assign id_src1_o = 
+                       (shift==`SHIFT_ENABLE)?{27'b0,sa}:
+                       (fwrd1==2'b01)? exe2id_wd:
+                       (fwrd1==2'b10)? mem2id_wd:   
+                       (fwrd1==2'b11)? rd1:`ZERO_WORD;
+                       
+                       
     // imm if imm signal is active, else the data from register port 2
-    assign id_src2_o = (immsel == `IMM_ENABLE) ? imm_ext: rd2;
+    assign id_src2_o = 
+                       (immsel==`IMM_ENABLE)?imm_ext:    
+                       (fwrd2==2'b01)? exe2id_wd:
+                       (fwrd2==2'b10)? mem2id_wd:   
+                       (fwrd2==2'b11)? rd2:`ZERO_WORD;            
 
 endmodule
