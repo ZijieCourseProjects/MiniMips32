@@ -7,7 +7,7 @@
 main:
     addi $s0,$zero,0x1      
     lui  $a0,0xbfc0     
-    ori  $a0,0x00dc     
+    ori  $a0,0x0104    
     j    L0              #PC=0xbfc0070
     addi $s0,$s0,0x12
     nop
@@ -48,7 +48,7 @@ L0:
     ori  $s1,$zero,0x34
 L4:
     lui   $a1,0xbfc0
-    addi  $a1,$a1,0x004c
+    addi  $a1,$a1,0x00dc
     bgezal $t1,L6
     nop
     lui   $at,0x0000  #nop
@@ -76,10 +76,14 @@ L5:
     nop
     nop
     addi  $at,0x0001
-    bltzal $t1,L4       #PC=0xbfc000ec
+    bltzal $t1,L7       #PC+8
     nop
     nop
-
 
 L7:
-
+     jr    $a0          #PC=0xbfc00104 即L8
+     nop
+     nop
+L8:
+     nop
+	

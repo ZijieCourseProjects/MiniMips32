@@ -116,23 +116,23 @@ module id_stage(
     wire inst_jr=inst_reg& ~func[5]& ~func[4]& func[3]& ~func[2]& ~func[1]& ~func[0];
     wire inst_beq=~op[5]&~op[4]&~op[3]&op[2]&~op[1]&~op[0];
     wire inst_bne=~op[5]&~op[4]&~op[3]&op[2]&~op[1]&op[0];
-    wire inst_bgez=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
+    wire inst_bgez=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
     wire inst_bgtz=~op[5]&~op[4]&~op[3]&op[2]&op[1]&op[0];
     wire inst_blez=~op[5]&~op[4]&~op[3]&op[2]&op[1]&~op[0];
-    wire inst_bltz=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
-    wire inst_bltzal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
-    wire inst_bgezal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[5]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
+    wire inst_bltz=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
+    wire inst_bltzal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
+    wire inst_bgezal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
    // wire inst_jalr=inst_reg& ~func[5]&~func[4]&func[3]& ~func[2]&~func[1]&func[0];
     /*------------------------------------------------------------------------------*/
     //signal for equal
     wire equ=(inst_beq)?(id_src1_o==id_src2_o):
               (inst_bne)?(id_src1_o != id_src2_o): 
-              (inst_bgez)?(id_src1_o >=0): 
-              (inst_bgtz)?(id_src1_o >0): 
-              (inst_blez)?(id_src1_o <=0): 
-              (inst_bltz)?(id_src1_o <0): 
-              (inst_bltzal)?(id_src1_o <0): 
-              (inst_bgezal)?(id_src1_o >=0): 1'b0;
+              (inst_bgez)?($signed(id_src1_o) >=0): 
+              (inst_bgtz)?($signed(id_src1_o) >0): 
+              (inst_blez)?($signed(id_src1_o) <=0): 
+              (inst_bltz)?($signed(id_src1_o) <0): 
+              (inst_bltzal)?($signed(id_src1_o) <0): 
+              (inst_bgezal)?($signed(id_src1_o) >=0): 1'b0;
     /*-------------------- Step2: generate sepcific controlling signal --------------------*/
     // operate_type
     assign id_alutype_o[2] = (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl|
@@ -181,11 +181,6 @@ module id_stage(
                                inst_lb|inst_lw|inst_addu|inst_addi|inst_sra|inst_srav|inst_sub|
                                inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl
                                |inst_jal|inst_bltzal|inst_bgezal);
-    assign rreg1=inst_add|inst_subu|inst_slt|inst_and|inst_mult|
-                 inst_ori|inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|
-                 inst_jr|inst_beq|inst_bne;
-    assign rreg2=inst_add|inst_subu|inst_slt|inst_and|inst_mult|inst_sll|
-                 inst_sb|inst_sw|inst_beq|inst_bne; 
 
     //enabling signal for writing hilo register
     assign id_whilo_o[1] = (inst_mult|inst_multu|inst_mthi);
