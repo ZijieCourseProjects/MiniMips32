@@ -4,6 +4,7 @@ module exemem_reg (
     input  wire 				cpu_clk_50M,
     input  wire 				cpu_rst_n,
 
+    input wire  [`STALL_BUS   ]    stall,
     input  wire [`ALUOP_BUS   ]    exe_aluop,
     input  wire [`REG_ADDR_BUS]    exe_wa,
     input  wire                    exe_wreg,
@@ -43,12 +44,6 @@ module exemem_reg (
         mem_din                <= `ZERO_WORD;
         mem_whilo              <= `WRITE_DISABLE;
         mem_hilo               <= `ZERO_DWORD;
-        mem_cp0_we             <= 1'b0;
-        mem_cp0_waddr          <= `ZERO_WORD;
-        mem_cp0_wdata          <= `ZERO_WORD;
-        mem_pc                 <= `PC_INIT;
-        mem_in_delay           <= 1'b0;
-        mem_exccode            <= `EXC_NONE;
     end    
     else if(stall[3]==`NOSTOP) begin
         mem_aluop              <= exe_aluop;
@@ -59,12 +54,6 @@ module exemem_reg (
         mem_din                <= exe_din;
         mem_whilo              <= exe_whilo;
         mem_hilo               <= exe_hilo;
-        mem_cp0_we             <= exe_cp0_we;
-        mem_cp0_waddr          <= exe_cp0_waddr;
-        mem_cp0_wdata          <= exe_cp0_wdata;
-        mem_pc                 <= exe_pc;
-        mem_in_delay           <= exe_in_delay;
-        mem_exccode            <= exe_exccode;
     end
   end
 

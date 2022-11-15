@@ -86,7 +86,11 @@
 `define MINIMIPS32_JAL             8'h2E
 `define MINIMIPS32_BEQ             8'h30
 `define MINIMIPS32_BNE             8'h31
-`define MINIMIPS32_DIV             8'h16
+
+
+//div
+`define MINIMIPS32_DIV             8'h50
+`define MINIMIPS32_DIVU            8'h51
 
 /*------------------- ͨRegister Configeration -------------------*/
 `define REG_BUS         31: 0               // Width of register data

@@ -102,16 +102,21 @@ module MiniMIPS32(
     wire [`INST_ADDR_BUS]  id_pc_plus_4;
     wire [`INST_ADDR_BUS]  id_ret_addr;
     wire [`INST_ADDR_BUS]  exe_ret_addr;
+    
+    //pipeline stall 
+    wire[`STALL_BUS]      stall;
+    wire                  stallreq_id;
+    wire                  stallreq_exe;
 
     if_stage if_stage0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .pc(pc), .ice(ice), .iaddr(iaddr),.jump_addr_1(jump_addr_1),
         .jump_addr_2(jump_addr_2),.jump_addr_3(jump_addr_3),.jtsel(jtsel),
-        .pc_plus_4(if_pc_plus_4)
+        .pc_plus_4(if_pc_plus_4), .stall(stall)
     );
 
     ifid_reg ifid_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
         .if_pc(pc), .id_pc(id_pc_i),.if_pc_plus_4(if_pc_plus_4),
-        .id_pc_plus_4(id_pc_plus_4)
+        .id_pc_plus_4(id_pc_plus_4),.stall(stall)
     );
 
     id_stage id_stage0(.id_pc_i(id_pc_i), 
@@ -134,7 +139,8 @@ module MiniMIPS32(
         .jump_addr_2(jump_addr_2),
         .jump_addr_3(jump_addr_3),
         .jtsel(jtsel),
-        .ret_addr( id_ret_addr)
+        .ret_addr( id_ret_addr),
+        .stallreq_id( stallreq_id),.exe2id_mreg(exe_mreg_o),.mem2id_mreg(mem_mreg_o)
     );
 
     regfile regfile0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
@@ -153,10 +159,12 @@ module MiniMIPS32(
         .exe_src1(exe_src1_i), .exe_src2(exe_src2_i), 
         .exe_wa(exe_wa_i), .exe_wreg(exe_wreg_i),.exe_whilo(exe_whilo_i),
         .exe_mreg(exe_mreg_i),.exe_din(exe_din_i),
-        .id_ret_addr(id_ret_addr),.exe_ret_addr(exe_ret_addr)
+        .id_ret_addr(id_ret_addr),.exe_ret_addr(exe_ret_addr),
+        .stall(stall)
     );
 
     exe_stage exe_stage0(
+        .cpu_clk_50M(cpu_clk_50M),
         .exe_alutype_i(exe_alutype_i), .exe_aluop_i(exe_aluop_i),
         .exe_src1_i(exe_src1_i), .exe_src2_i(exe_src2_i),
         .exe_wa_i(exe_wa_i), .exe_wreg_i(exe_wreg_i),
@@ -169,7 +177,9 @@ module MiniMIPS32(
         .exe_aluop_o(exe_aluop_o),
         .exe_wa_o(exe_wa_o), .exe_wreg_o(exe_wreg_o), .exe_wd_o(exe_wd_o),
         .exe_mreg_o(exe_mreg_o),.exe_din_o(exe_din_o),
-        .exe_whilo_o(exe_whilo_o),.exe_hilo_o(exe_hilo_o)
+        .exe_whilo_o(exe_whilo_o),.exe_hilo_o(exe_hilo_o),
+        
+        .stallreq_exe(stallreq_exe)
     );
 
     exemem_reg exemem_reg0(.cpu_clk_50M(cpu_clk_50M), .cpu_rst_n(cpu_rst_n),
@@ -180,7 +190,7 @@ module MiniMIPS32(
         .mem_aluop(mem_aluop_i),
         .mem_wa(mem_wa_i), .mem_wreg(mem_wreg_i), .mem_wd(mem_wd_i),
         .mem_mreg(mem_mreg_i),.mem_din(mem_din_i),
-        .mem_whilo(mem_whilo_i),.mem_hilo(mem_hilo_i)
+        .mem_whilo(mem_whilo_i),.mem_hilo(mem_hilo_i),.stall(stall)
     );
 
     mem_stage mem_stage0(

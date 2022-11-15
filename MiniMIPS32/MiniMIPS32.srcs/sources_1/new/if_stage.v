@@ -7,10 +7,10 @@ module if_stage (
     input 	wire [`INST_ADDR_BUS]	jump_addr_2,
     input 	wire [`INST_ADDR_BUS]	jump_addr_3,
     input   wire [`JTSEL_BUS]   	jtsel,
-    input   wire [`STALL_BUS ]     stall,
+    input   wire [`STALL_BUS ]      stall,
     
     output 	wire [`INST_ADDR_BUS]	pc_plus_4,
-    output  reg                     ice,
+    output   wire                     ice,
     output 	reg  [`INST_ADDR_BUS] 	pc,
     output 	wire [`INST_ADDR_BUS]	iaddr
     );
@@ -28,8 +28,11 @@ module if_stage (
 		end else begin
 			ce <= `CHIP_ENABLE; 		      // enable INSTR MEM after reseting
 		end
+		
 	end
-    assign ice=(stall[1]==`TRUE_V)? 0:ce;
+	
+	assign  ice = (stall[1]==`TRUE_V) ? 1'b0:
+	                       (ce == 0)?1'b0:1'b1;
     
     always @(posedge cpu_clk_50M) begin
         if (ce == `CHIP_DISABLE)

@@ -18,7 +18,7 @@ module ifid_reg (
 			id_pc 	<= `PC_INIT;
 			id_pc_plus_4 <= `ZERO_WORD;
 		end
-		else if(stall[1]==`STOP&&stall[2]==`NOSTOP) beign
+		else if(stall[1]==`STOP&&stall[2]==`NOSTOP) begin
 		 id_pc    <= `ZERO_WORD;        
          id_pc_plus_4 <= `ZERO_WORD;
 		end
