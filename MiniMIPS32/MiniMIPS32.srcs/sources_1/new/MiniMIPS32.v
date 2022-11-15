@@ -219,5 +219,10 @@ module MiniMIPS32(
         .hi_i(wb_hilo_o[63:32]),.lo_i(wb_hilo_o[31:0]),
         .hi_o(exe_hi_i),.lo_o(exe_lo_i)
     );
+    
+    scu scu0(
+        .cpu_rst_n(cpu_rst_n),.stallreq_id(stallreq_id),
+        .stallreq_exe(stallreq_exe),.stall(stall)
+    );
 
 endmodule

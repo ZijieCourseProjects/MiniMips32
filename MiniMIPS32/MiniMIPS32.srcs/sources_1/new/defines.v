@@ -86,9 +86,25 @@
 `define MINIMIPS32_JAL             8'h2E
 `define MINIMIPS32_BEQ             8'h30
 `define MINIMIPS32_BNE             8'h31
+`define MINIMIPS32_DIV             8'h16
 
 /*------------------- ͨRegister Configeration -------------------*/
 `define REG_BUS         31: 0               // Width of register data
 `define REG_ADDR_BUS    4 : 0               // Width of Register Address
 `define REG_NUM         32                  // Number of GPRs
 `define REG_NOP         5'b00000            // 0th Register
+
+/*------------------- Flow line suspension -------------------*/
+`define STALL_BUS       3 : 0               // Pause signal width
+`define STOP            1'b1                // Flow line suspension
+`define NOSTOP          1'b0                // No pause in the flow line
+
+/*------------------- Division instruction parameters -------------------*/
+`define DIV_FREE            2'b00           // Division readiness
+`define DIV_BY_ZERO         2'b01           // Determine if the state is divided by zero
+`define DIV_ON              2'b10           // Division start state
+`define DIV_END             2'b11           // Division end state
+`define DIV_READY           1'b1            // Division operation end signal
+`define DIV_NOT_READY       1'b0            // Division operation not completed signal
+`define DIV_START           1'b1            // Division start signal
+`define DIV_STOP            1'b0            // Division not started signal
