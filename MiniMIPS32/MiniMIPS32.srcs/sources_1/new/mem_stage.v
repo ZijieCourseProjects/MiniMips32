@@ -13,6 +13,20 @@
     input  wire [`WE_HILO]              mem_whilo_i,
     input  wire [`DOUBLE_REG_BUS]       mem_hilo_i,
 
+    input wire                          cp0_we_i,
+    input wire [`REG_ADDR_BUS       ]   cp0_waddr_i,
+    input wire [`REG_BUS            ]   cp0_wdata_i,
+    input wire                          wb2mem_cp0_we,
+    input wire [`REG_ADDR_BUS       ]   wb2mem_cp0_wa,
+    input wire [`REG_BUS            ]   wb2mem_cp0_wd,
+
+    input wire [`INST_ADDR_BUS      ]   mem_pc_i,
+    input wire                          mem_in_delay_i,
+    input wire [`EXC_CODE_BUS       ]   mem_exccode_i,
+
+    input wire [`WORD_BUS           ]   cp0_status,
+    input wire [`WORD_BUS           ]   cp0_cause,
+
     // to wb
     output wire [`REG_ADDR_BUS  ]       mem_wa_o,
     output wire                         mem_wreg_o,
@@ -27,8 +41,19 @@
     output wire [`INST_ADDR_BUS ]       daddr,
     output wire [`BSEL_BUS      ]       we,
     output wire [`REG_BUS       ]       din,
-    output wire [`ALUOP_BUS     ]       mem_aluop_o
+    output wire [`ALUOP_BUS     ]       mem_aluop_o,
+
+    output wire                         cp0_we_o,
+    output wire [`REG_ADDR_BUS      ]   cp0_waddr_o,
+    output wire [`REG_BUS           ]   cp0_wdata_o,
+
+    output wire [`INST_ADDR_BUS     ]   cp0_pc,
+    output wire                         cp0_in_delay,
+    output wire [`EXC_CODE_BUS      ]   cp0_exccode
     );
+
+    wire [`WORD_BUS]    status;
+    wire [`WORD_BUS]    cause;
 
     assign mem_wa_o    = mem_wa_i;
     assign mem_wreg_o  = mem_wreg_i;
@@ -50,6 +75,19 @@
     // memory address to read
     assign daddr  =  mem_wd_i;
 
+    assign cp0_we_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0:cp0_we_i;
+    assign cp0_waddr_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : cp0_waddr_i;
+    assign cp0_wdata_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :cp0_wdata_i;
+
+    assign status = (wb2mem_cp0_we==`WRITE_ENABLE && wb2mem_cp0_wa == `CP0_STATUS) ? wb2mem_cp0_wd : cp0_status;
+    assign cause = (wb2mem_cp0_we == `WRITE_ENABLE && wb2mem_cp0_wa  == `CP0_CAUSE) ? wb2mem_cp0_wd : cp0_cause;
+    
+    assign cp0_in_delay = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : mem_in_delay_i;
+    assign cp0_pc = (cpu_rst_n == `RST_ENABLE) ? `PC_INIT : mem_pc_i;
+    
+    assign cp0_exccode = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD:
+                         ((status[15:10] & cause[15:10]) != 8'h00 && status[1] == 1'b0 && status[0] == 1'b1) ? `EXC_INT:
+                         mem_exccode_i;
     //decide byte-read enable signal
     assign dre[3] =
                     ((inst_lb  &(daddr[1:0] == 2'b00))|

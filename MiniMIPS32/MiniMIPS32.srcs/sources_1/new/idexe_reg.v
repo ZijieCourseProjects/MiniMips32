@@ -17,6 +17,13 @@ module idexe_reg (
     input  wire [`WE_HILO]          id_whilo,
     input  wire [`REG_BUS]          id_ret_addr,
 
+    input  wire [`REG_ADDR_BUS]     id_cp0_addr,
+    input  wire [`INST_ADDR_BUS]    id_pc,
+    input  wire                     id_in_delay,
+    input  wire                     next_delay_i,
+    input  wire  [`EXC_CODE_BUS]    id_exccode,
+    input  wire                     flush,
+
     output reg  [`ALUTYPE_BUS  ]  exe_alutype,
     output reg  [`ALUOP_BUS    ]  exe_aluop,
     output reg  [`REG_BUS      ]  exe_src1,
@@ -26,11 +33,17 @@ module idexe_reg (
     output reg                    exe_mreg,
     output reg  [`REG_BUS]        exe_din,
     output reg  [`WE_HILO]        exe_whilo,
-    output reg  [`REG_BUS]        exe_ret_addr
+    output reg  [`REG_BUS]        exe_ret_addr，
+
+    output reg  [`REG_ADDR_BUS]   exe_cp0_addr,
+    output reg  [`INST_ADDR_BUS]  exe_pc,
+    output reg                    exe_in_delay,
+    output  reg                   next_delay_o,
+    output  reg  [`EXC_CODE_BUS]  exe_exccode
     );
 
     always @(posedge cpu_clk_50M) begin
-        if (cpu_rst_n == `RST_ENABLE) begin
+        if (cpu_rst_n == `RST_ENABLE || flush) begin
             exe_alutype 	   <= `NOP;
             exe_aluop 		   <= `MINIMIPS32_SLL;
             exe_src1 		   <= `ZERO_WORD;
@@ -41,6 +54,11 @@ module idexe_reg (
             exe_din            <= `ZERO_WORD;
             exe_whilo          <= `WRITE_DISABLE;
             exe_ret_addr       <= `ZERO_WORD;
+            exe_cp0_addr       <= `REG_NOP;
+            exe_pc             <= `PC_INIT;
+            exe_in_delay       <= `FALSE_V;
+            next_delay_o       <= `FALSE_V;
+            exe_exccode        <= `EXC_NONE;
         end
         else if(stall[2]==`STOP && stall[3]==`NOSTOP) begin
             exe_alutype 	   <= `NOP;
@@ -53,6 +71,11 @@ module idexe_reg (
             exe_din            <= `ZERO_WORD;
             exe_whilo          <= `WRITE_DISABLE;
             exe_ret_addr       <= `ZERO_WORD;
+            exe_cp0_addr       <= `REG_NOP;
+            exe_pc             <= `PC_INIT;
+            exe_in_delay       <= `FALSE_V;
+            next_delay_o       <= `FALSE_V;
+            exe_exccode        <= `EXC_NONE;
         end
         else if(stall[2]==`NOSTOP) begin
             exe_alutype 	   <= id_alutype;
@@ -65,6 +88,11 @@ module idexe_reg (
             exe_din            <= id_din;
             exe_whilo          <= id_whilo;
             exe_ret_addr       <= id_ret_addr;
+            exe_cp0_addr       <= id_cp0_addr;
+            exe_pc             <= id_pc;
+            exe_in_delay       <= id_in_delay;
+            next_delay_o       <= next_delay_i;
+            exe_exccode        <= id_exccode;
         end
     end
 

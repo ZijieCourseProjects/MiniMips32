@@ -26,6 +26,20 @@ module exe_stage (
 
     input  wire [`INST_ADDR_BUS]    ret_addr,
 
+    input wire [`REG_ADDR_BUS]      cp0_addr_i,
+    input wire [`REG_BUS]           cp0_data_i,
+
+    input wire                      mem2exe_cp0_we,
+    input wire [`REG_ADDR_BUS]      mem2exe_cp0_wa,
+    input wire [`REG_BUS]           mem2exe_cp0_wd,
+    input wire                      wb2exe_cp0_we,
+    input wire [`REG_ADDR_BUS]      wb2exe_cp0_wa,
+    input wire [`REG_BUS]           wb2exe_cp0_wd,
+
+    input wire [`INST_ADDR_BUS]     exe_pc_i,
+    input wire                      exe_in_delay_i,
+    input wire [`EXC_CODE_BUS]      exe_exccode_i,
+
     output wire [`ALUOP_BUS	    ] 	exe_aluop_o,
     output wire [`REG_ADDR_BUS 	] 	exe_wa_o,
     output wire 					          exe_wreg_o,
@@ -35,8 +49,21 @@ module exe_stage (
     output wire [`WE_HILO]          exe_whilo_o,
     output wire [`DOUBLE_REG_BUS]   exe_hilo_o,
 
-    output wire                     stallreq_exe
+    output wire                     stallreq_exe，
+
+    output wire                     cp0_re_o,
+    output wire [`REG_ADDR_BUS]     cp0_raddr_o,
+    output wire                     cp0_we_o,
+    output wire [`REG_ADDR_BUS]     cp0_waddr_o,
+    output wire [`REG_BUS]          cp0_wdata_o,
+    
+    output wire [`INST_ADDR_BUS]     exe_pc_o,
+    output wire                      exe_in_delay_o,
+    output wire [`EXC_CODE_BUS]      exe_exccode_o  
     );
+
+    assign exe_pc_o =(cpu_rst_n == `RST_ENABLE) ?`PC_INIT:exe_pc_i;
+    assign exe_in_delay_o = (cpu_rst_n == `RST_ENABLE) ?1'b0:exe_in_delay_i;
 
     assign exe_aluop_o = exe_aluop_i;
     assign exe_mreg_o  = exe_mreg_i;
@@ -52,6 +79,20 @@ module exe_stage (
     wire [`REG_BUS       ]             memres;
     wire [`DOUBLE_REG_BUS       ]      mulres;
     reg  [`DOUBLE_REG_BUS]             divres = {`ZERO_WORD,`ZERO_WORD};
+
+    wire [`REG_BUS]             cp0_t;
+
+    assign cp0_we_o = (cpu_rst_n ==`RST_ENABLE)? 1'b0:
+                      (exe_aluop_i == `MINIMIPS32_MTC0)?1'b1:1'b0;
+    assign cp0_wdata_o = (cpu_rst_n ==`RST_ENABLE)? `ZERO_WORD:
+                      (exe_aluop_i == `MINIMIPS32_MTC0)?exe_src2_i :`ZERO_WORD;
+    assign cp0_waddr_o = (cpu_rst_n ==`RST_ENABLE)? `REG_NOP:cp0_addr_i;
+    assign cp0_raddr_o = (cpu_rst_n ==`RST_ENABLE)? `REG_NOP:cp0_addr_i;
+    assign cp0_re_o = (cpu_rst_n ==`RST_ENABLE)? 1'b0:
+                      (exe_aluop_i == `MINIMIPS32_MFC0)?1'b1:1'b0;  
+    assign cp0_t =(cp0_re_o != `READ_ENABLE)?`ZERO_WORD:
+                  (mem2exe_cp0_we == `WRITE_ENABLE && mem2exe_cp0_wa == cp0_raddr_o) ? mem2exe_cp0_wd:
+                  (wb2exe_cp0_we == `WRITE_ENABLE && wb2exe_cp0_wa == cp0_raddr_o)? wb2exe_cp0_wd:cp0_data_i; 
 
     // CALCULATE LOGIC OPERATION
     assign logicres = (exe_aluop_i ==`MINIMIPS32_AND)   ? (exe_src1_i & exe_src2_i):
@@ -81,7 +122,8 @@ module exe_stage (
 
     //move the value in two regs to destination register
     assign moveres = (exe_aluop_i == `MINIMIPS32_MFHI) ? hi_t:
-                     (exe_aluop_i == `MINIMIPS32_MFLO) ? lo_t:`ZERO_WORD;
+                     (exe_aluop_i == `MINIMIPS32_MFLO) ? lo_t:
+                     (exe_aluop_i == `MINIMIPS32_MFC0) ? cp0_t : `ZERO_WORD;
 
     //cauculate the arith instruction result.
     assign arithres = (exe_aluop_i ==`MINIMIPS32_ADD)    ? (exe_src1_i+exe_src2_i):
@@ -133,6 +175,7 @@ module exe_stage (
     wire [`REG_BUS       ]      div_opdata2;
     wire                        div_start;
     reg                         div_ready = `DIV_NOT_READY;
+
 
     assign stallreq_exe= ((exe_aluop_i==`MINIMIPS32_DIV) && (div_ready == `DIV_NOT_READY)) ?`STOP: 
                          ((exe_aluop_i==`MINIMIPS32_DIVU) && (div_ready == `DIV_NOT_READY)) ?`STOP:`NOSTOP;
@@ -243,5 +286,17 @@ module exe_stage (
           end
         endcase
     end
+
+    // SUB or SUBU
+    wire [31:0] exe_src2_t = (exe_aluop_i == `MINIMIPS32_SUBU) ? (~exe_src2_i) +1:exe_src2_i;
+    wire [31:0] arith_tmp = exe_src1_i + exe_src2_t;
+    wire ov = ((!exe_src1_i[31] && !exe_src2_t[31] && arith_tmp[31]) || (exe_src1_i[31] && exe_src2_t[31] && !arith_tmp[31]));
+    
+    assign exe_exccode_o =(cpu_rst_n   == `RST_ENABLE) ? `EXC_NONE:
+                          ((exe_aluop_i == `MINIMIPS32_ADD) && (ov == `TRUE_V)) ? `EXC_OV : exe_exccode_i;
+
+                          // ((exe_aluop_i == `MINIMIPS32_ADDI) && (ov == 1'b1)) ? `EXC_OV :
+                          // ((exe_aluop_i == `MINIMIPS32_SUB) && (ov == 1'b1)) ? `EXC_OV :exe_exccode_i;
+
 
 endmodule
