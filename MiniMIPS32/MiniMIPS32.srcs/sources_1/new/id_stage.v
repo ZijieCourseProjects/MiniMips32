@@ -179,12 +179,12 @@ module id_stage(
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
                               inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl
-                              |inst_jal|inst_divu);
+                              |inst_jal);
 
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
-                              |inst_bne|inst_jr);
+                              |inst_bne|inst_jr|inst_divu);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
