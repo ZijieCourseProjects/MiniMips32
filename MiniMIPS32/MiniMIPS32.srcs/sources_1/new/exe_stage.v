@@ -33,9 +33,9 @@ module exe_stage (
     output wire                     exe_mreg_o,
     output wire [`REG_BUS]          exe_din_o,
     output wire [`WE_HILO]          exe_whilo_o,
-    output wire [`DOUBLE_REG_BUS]   exe_hilo_o
+    output wire [`DOUBLE_REG_BUS]   exe_hilo_o,
 
-    output wire                     stallreq_exe,
+    output wire                     stallreq_exe
     );
 
     assign exe_aluop_o = exe_aluop_i;
@@ -51,7 +51,7 @@ module exe_stage (
     wire [`REG_BUS       ]             arithres;
     wire [`REG_BUS       ]             memres;
     wire [`DOUBLE_REG_BUS       ]      mulres;
-    reg  ['DOUBLE_REG_BUS]             divres;
+    reg  [`DOUBLE_REG_BUS]             divres = {`ZERO_WORD,`ZERO_WORD};
 
     // CALCULATE LOGIC OPERATION
     assign logicres = (exe_aluop_i ==`MINIMIPS32_AND)   ? (exe_src1_i & exe_src2_i):
@@ -132,23 +132,18 @@ module exe_stage (
     wire [`REG_BUS       ]      div_opdata1;
     wire [`REG_BUS       ]      div_opdata2;
     wire                        div_start;
-    reg                         div_ready;
+    reg                         div_ready = `DIV_NOT_READY;
 
-    assign stallreq_exe =(cpu_rst_n ==`RST_ENABLE)? `NOSTOP:
-                         ((exe_aluop_i==`MINIMIPS32_DIV) && (div_ready == `DIV_NOT_READY)) ?`STOP: 
+    assign stallreq_exe= ((exe_aluop_i==`MINIMIPS32_DIV) && (div_ready == `DIV_NOT_READY)) ?`STOP: 
                          ((exe_aluop_i==`MINIMIPS32_DIVU) && (div_ready == `DIV_NOT_READY)) ?`STOP:`NOSTOP;
-    assign div_opdata1 =(cpu_rst_n ==`RST_ENABLE)? `ZERO_WORD:
-                        (exe_aluop_i== `MINIMIPS32_DIV) ? exe_src1_i:
-                        (exe_aluop_i== `MINIMIPS32_DIVU) ? exe_src1_i: `ZERO_WORD;
-    assign div_opdata2=(cpu_rst_n == `RST_ENABLE)? `ZERO_WORD:
-                       (exe_aluop_i== `MINIMIPS32_DIV)? exe_src2_i:
-                       (exe_aluop_i== `MINIMIPS32_DIVU) ? exe_src2_i: `ZERO_WORD;
-    assign div_start =(cpu_rst_n == `RST_ENABLE)?`DIV_STOP:
-                      ((exe_aluop_i== `MINIMIPS32_DIV) &&(div_ready == `DIV_NOT_READY))?`DIV_START: 
-                      ((exe_aluop_i== `MINIMIPS32_DIVU) &&(div_ready == `DIV_NOT_READY))?`DIV_START:`DIV_STOP;
+    assign div_opdata1 = (exe_aluop_i== `MINIMIPS32_DIV) ? exe_src1_i:
+                         (exe_aluop_i== `MINIMIPS32_DIVU) ? exe_src1_i: `ZERO_WORD;
+    assign div_opdata2 = (exe_aluop_i== `MINIMIPS32_DIV)? exe_src2_i:
+                         (exe_aluop_i== `MINIMIPS32_DIVU) ? exe_src2_i: `ZERO_WORD;
+    assign div_start   = ((exe_aluop_i== `MINIMIPS32_DIV) &&(div_ready == `DIV_NOT_READY))?`DIV_START: 
+                         ((exe_aluop_i== `MINIMIPS32_DIVU) &&(div_ready == `DIV_NOT_READY))?`DIV_START:`DIV_STOP;
 
-    assign signed_div_i= (cpu_rst_n ==`RST_ENABLE)?1'b0:
-                         (exe_aluop_i== `MINIMIPS32_DIV) ?1'b1: 1'b0;
+    assign signed_div_i= (exe_aluop_i== `MINIMIPS32_DIV) ?1'b1: 1'b0;
 
     wire [34:0]         div_temp;
     wire [34:0]         div_temp0;
@@ -160,7 +155,7 @@ module exe_stage (
     reg  [5: 0]         cnt;
     
     reg [65: 0]         dividend;
-    reg [1: 0]          state;
+    reg [1: 0]           state = `DIV_FREE;
     reg [33:0]          divisor;
     reg [31:0]          temp_op1;
     reg [31: 0]         temp_op2;
@@ -181,14 +176,8 @@ module exe_stage (
 
     assign mul_cnt =(div_temp3[34] ==1'b0 )? 2'b11:
                     (div_temp2[34]==1'b0)? 2'b10:2'b01;
-
-    always @(posedge cpu_clk_50M)begin
-      if (cpu_rst_n ==`RST_ENABLE) begin
-          state       <= `DIV_FREE;
-          div_ready   <= `DIV_NOT_READY;
-          divres      <=  {`ZERO_WORD, `ZERO_WORD};
-      end 
-      else begin
+ 
+    always @(posedge cpu_clk_50M) begin
         case (state)
           `DIV_FREE:begin
             if(div_start == `DIV_START) begin
@@ -253,7 +242,6 @@ module exe_stage (
             end
           end
         endcase
-      end
     end
 
 endmodule

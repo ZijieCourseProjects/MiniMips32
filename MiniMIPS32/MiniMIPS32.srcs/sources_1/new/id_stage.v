@@ -157,7 +157,7 @@ module id_stage(
 
     // OP-code
     assign id_aluop_o[7] = (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh);
-    assign id_aluop_o[6] = 1'b0;
+    assign id_aluop_o[6] = (inst_div|inst_divu);
     assign id_aluop_o[5] = (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori
                             |inst_j|inst_jal|inst_jr|inst_beq|inst_bne);
     assign id_aluop_o[4] = (inst_add|inst_subu|inst_and|inst_mult|inst_sll|
@@ -174,17 +174,17 @@ module id_stage(
     assign id_aluop_o[2] =   (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
                                inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi
-                               |inst_j|inst_jal|inst_jr|inst_div|inst_divu);
+                               |inst_j|inst_jal|inst_jr);
 
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
                               inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl
-                              |inst_jal|inst_div|inst_divu);
+                              |inst_jal|inst_divu);
 
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
-                              |inst_bne|inst_jr|inst_divu);
+                              |inst_bne|inst_jr);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
@@ -223,8 +223,7 @@ module id_stage(
     assign id_mreg_o = (inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
 
     //TODO add jalr
-    assign rreg1=(cpu_rst_n == `RST_ENABLE)?1'b0:
-                                 (inst_add | inst_subu | inst_slt | inst_and | inst_mult|
+    assign rreg1=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult|
                                 inst_ori | inst_addiu | inst_sltiu | inst_lb | inst_lw | inst_sb | inst_sw
                              | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
                              | inst_xor | inst_sllv | inst_srlv | inst_srav | inst_multu 
@@ -234,8 +233,7 @@ module id_stage(
 
 
     //TODO add mtc0
-    assign rreg2=(cpu_rst_n==`RST_ENABLE)?1'b0:
-                              (inst_add | inst_subu | inst_slt | inst_and | inst_mult | inst_sll | inst_sb | inst_sw
+    assign rreg2=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult | inst_sll | inst_sb | inst_sw
                               | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
                               | inst_xor | inst_srl| inst_sra | inst_sllv | inst_srlv | inst_srav | inst_multu |inst_sh
                               | inst_beq |inst_bne | inst_div | inst_divu );
@@ -290,8 +288,7 @@ module id_stage(
                        (fwrd2==2'b10)? mem2id_wd:   
                        (fwrd2==2'b11)? rd2:`ZERO_WORD; 
 
-    assign stallreq_id = (cpu_rst_n==`RST_ENABLE)? `NOSTOP:
-                         (((exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 && rreg1 == `READ_ENABLE)||
+    assign stallreq_id = (((exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 && rreg1 == `READ_ENABLE)||
                          (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra2 && rreg2 == `READ_ENABLE))&&
                          (exe2id_mreg == 1'b1))?`STOP:
                          (((mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra1 && rreg1 == `READ_ENABLE)||
