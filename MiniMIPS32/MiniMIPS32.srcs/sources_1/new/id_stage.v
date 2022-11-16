@@ -251,14 +251,18 @@ module id_stage(
     assign id_wa_o = (rtsel == `RT_ENABLE)? rt:
                       (jal==`TRUE_V)?5'b11111:rd;
 
-    //data to be written into the memory
-    assign id_din_o = rd2;
     //generate signal to choose sorce operand
     wire [1:0] fwrd1=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra1)? 2'b01:
                       (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra1)? 2'b10:2'b11;
                       
     wire [1:0] fwrd2=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra2)? 2'b01:
                       (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra2)? 2'b10:2'b11; 
+    
+    //data to be written into the memory                  
+    assign id_din_o =  (fwrd2 == 2'b01) ?   exe2id_wd:
+                                    (fwrd2 == 2'b10) ?  mem2id_wd:
+                                    (fwrd2 == 2'b11) ?  rd2:`ZERO_WORD;
+                                    
     //signal for commit address
     wire [`INST_ADDR_BUS]pc_plus_8 =pc_plus_4+4;
     wire [`JUMP_BUS]     instr_index=id_inst[25:0];
