@@ -381,6 +381,7 @@ module id_stage(
                         inst_syscall |
                         inst_eret |
                         inst_mfc0 |
+                        inst_break|
                         inst_mtc0 ;
     // Determine whether there is an exception in the instruction currently in the decoding stage, and set the corresponding exception type code
         assign id_exccode_o= (inst_syscall == 1'b1)?`EXC_SYS:
