@@ -22,10 +22,20 @@ module memwb_reg (
 	output reg  [`WE_HILO]          wb_whilo,
 	output reg  [`DOUBLE_REG_BUS]   wb_hilo,
 	output reg [`ALUOP_BUS     ]   wb_aluop
-    );
+
+	input wire                     mem_cp0_we,
+	input wire [`REG_ADDR_BUS  ]   mem_cp0_waddr,
+	input wire [`REG_BUS       ]   mem_cp0_wdata,
+	
+	input wire                     flush,
+	
+	output reg                     wb_cp0_we,
+	output reg [`REG_ADDR_BUS  ]   wb_cp0_waddr,
+	output reg [`REG_BUS       ]   wb_cp0_wdata
+    );ß
 
     always @(posedge cpu_clk_50M) begin
-		if (cpu_rst_n == `RST_ENABLE) begin
+		if (cpu_rst_n == `RST_ENABLE || flush) begin
 			wb_wa       <= `REG_NOP;
 			wb_wreg     <= `WRITE_DISABLE;
 			wb_dreg     <= `ZERO_WORD;
@@ -34,6 +44,9 @@ module memwb_reg (
 			wb_whilo    <= `WRITE_DISABLE;
 			wb_hilo     <= `ZERO_DWORD;
 			wb_aluop    <=  8'b0;
+			wb_cp0_we   <= `FALSE_V;
+			wb_cp0_waddr<= `ZERO_WORD;
+			wb_cp0_wdata<= `ZERO_WORD;
 		end
 		else begin
 			wb_wa 	    <= mem_wa;
@@ -44,6 +57,9 @@ module memwb_reg (
 			wb_whilo    <= mem_whilo;
 			wb_hilo     <= mem_hilo;
 			wb_aluop    <= mem_aluop;
+			wb_cp0_we   <= mem_cp0_we;
+            wb_cp0_waddr<= mem_cp0_waddr;
+            wb_cp0_wdata<= mem_cp0_wdata;
 		end
 	end
 
