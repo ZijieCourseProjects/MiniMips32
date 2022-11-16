@@ -87,6 +87,7 @@
 `define MINIMIPS32_JAL             8'h2E
 `define MINIMIPS32_BEQ             8'h30
 `define MINIMIPS32_BNE             8'h31
+`define MINIMIPS32_BREAK           8'h85
 `define MINIMIPS32_SYSCALL         8'h86
 `define MINIMIPS32_ERET            8'h87
 `define MINIMIPS32_MFC0            8'h8C
@@ -135,8 +136,8 @@
 `define EXC_OV              5'h0c           // Coding of integer overflow exceptions
 `define EXC_NONE            5'h10           // No abnormalities
 `define EXC_ERET            5'h11           // Coding of ERET exceptions
-`define EXC_ADDR            32'h00000100    // Exception Handler Entry Address
-`define EXC_INT_ADDR        32'h00000040    // Interrupt Exception Handler Entry Address
+`define EXC_ADDR            32'hbfc00380  // Exception Handler Entry Address
+`define EXC_INT_ADDR        32'hbfc00380    // Interrupt Exception Handler Entry Address
 
 `define NOFLUSH             1'b0            // No emptying of the assembly line
 `define FLUSH               1'b1            // Exception occurred, clear the pipeline

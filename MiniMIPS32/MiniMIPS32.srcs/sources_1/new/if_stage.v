@@ -16,7 +16,9 @@ module if_stage (
     output 	wire [`INST_ADDR_BUS]	pc_plus_4,
     output   wire                     ice,
     output 	reg  [`INST_ADDR_BUS] 	pc,
-    output 	wire [`INST_ADDR_BUS]	iaddr
+    output 	wire [`INST_ADDR_BUS]	iaddr,
+    
+    output wire [`EXC_CODE_BUS]     if_exccode_o
     );
     
     assign pc_plus_4 = pc + 4;
@@ -50,4 +52,6 @@ module if_stage (
     end
     
     assign iaddr = (ice == `CHIP_DISABLE) ? (`PC_INIT-`PC_INIT) : (pc);    //read instr memory with address from PC
+    
+    assign if_exccode_o = (iaddr[1:0]!=2'b00)?`EXC_ADEL:`EXC_NONE;
 endmodule

@@ -21,7 +21,7 @@ module memwb_reg (
 	output reg  [`BSEL_BUS      ]	wb_dre,
 	output reg  [`WE_HILO]          wb_whilo,
 	output reg  [`DOUBLE_REG_BUS]   wb_hilo,
-	output reg [`ALUOP_BUS     ]   wb_aluop
+	output reg [`ALUOP_BUS     ]   wb_aluop,
 
 	input wire                     mem_cp0_we,
 	input wire [`REG_ADDR_BUS  ]   mem_cp0_waddr,
@@ -32,7 +32,7 @@ module memwb_reg (
 	output reg                     wb_cp0_we,
 	output reg [`REG_ADDR_BUS  ]   wb_cp0_waddr,
 	output reg [`REG_BUS       ]   wb_cp0_wdata
-    );ß
+    );
 
     always @(posedge cpu_clk_50M) begin
 		if (cpu_rst_n == `RST_ENABLE || flush) begin

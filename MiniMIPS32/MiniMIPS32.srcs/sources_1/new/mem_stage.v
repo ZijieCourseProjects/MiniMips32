@@ -49,7 +49,8 @@
 
     output wire [`INST_ADDR_BUS     ]   cp0_pc,
     output wire                         cp0_in_delay,
-    output wire [`EXC_CODE_BUS      ]   cp0_exccode
+    output wire [`EXC_CODE_BUS      ]   cp0_exccode,
+    output wire [`REG_BUS           ]   cp0_eaddr
     );
 
     wire [`WORD_BUS]    status;
@@ -75,19 +76,31 @@
     // memory address to read
     assign daddr  =  mem_wd_i;
 
-    assign cp0_we_o = (cpu_rst_n == `RST_ENABLE) ? 1'b0:cp0_we_i;
-    assign cp0_waddr_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : cp0_waddr_i;
-    assign cp0_wdata_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD :cp0_wdata_i;
+    assign cp0_we_o = cp0_we_i;
+    assign cp0_waddr_o = cp0_waddr_i;
+    assign cp0_wdata_o = cp0_wdata_i;
 
     assign status = (wb2mem_cp0_we==`WRITE_ENABLE && wb2mem_cp0_wa == `CP0_STATUS) ? wb2mem_cp0_wd : cp0_status;
     assign cause = (wb2mem_cp0_we == `WRITE_ENABLE && wb2mem_cp0_wa  == `CP0_CAUSE) ? wb2mem_cp0_wd : cp0_cause;
     
-    assign cp0_in_delay = (cpu_rst_n == `RST_ENABLE) ? 1'b0 : mem_in_delay_i;
-    assign cp0_pc = (cpu_rst_n == `RST_ENABLE) ? `PC_INIT : mem_pc_i;
+    assign cp0_in_delay = mem_in_delay_i;
+    assign cp0_pc = mem_pc_i;
     
-    assign cp0_exccode = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD:
+    assign cp0_exccode =
                          ((status[15:10] & cause[15:10]) != 8'h00 && status[1] == 1'b0 && status[0] == 1'b1) ? `EXC_INT:
+                         (inst_lh & (mem_wd_i[0]==1))? `EXC_ADEL:
+                         (inst_lhu & (mem_wd_i[0]==1))? `EXC_ADEL:
+                         (inst_lw & (mem_wd_i[1:0]!=2'b00))? `EXC_ADEL:
+                         (inst_sh & (mem_wd_i[0]==1))? `EXC_ADES:
+                         (inst_sw & (mem_wd_i[1:0]!=2'b00))? `EXC_ADES:
                          mem_exccode_i;
+                         
+    assign cp0_eaddr = 
+                       (cp0_exccode == `EXC_ADES)?mem_wd_i:
+                       (inst_lh & (mem_wd_i[0]==1))? mem_wd_i:
+                       (inst_lhu & (mem_wd_i[0]==1))? mem_wd_i:
+                       (inst_lw & (mem_wd_i[1:0]!=2'b00))? mem_wd_i:
+                       cp0_wdata_i;
     //decide byte-read enable signal
     assign dre[3] =
                     ((inst_lb  &(daddr[1:0] == 2'b00))|
@@ -114,18 +127,13 @@
     assign dce = (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh);
 
     // decide byte-write enable
-    assign we[3] =
-                    ((inst_sb &(daddr[1:0]==2'b00))|
-                     (inst_sh &(daddr[1:0]==2'b00))|inst_sw);
-    assign we[2] =
-                    ((inst_sb &(daddr[1:0]==2'b01))|
-                     (inst_sh &(daddr[1:0]==2'b00))|inst_sw);
-    assign we[1] =
-                    ((inst_sb &(daddr[1:0]==2'b10))|
-                     (inst_sh &(daddr[1:0]==2'b10))|inst_sw);
-    assign we[0] =
-                    ((inst_sb &(daddr[1:0]==2'b11))|
-                     (inst_sh &(daddr[1:0]==2'b10))|inst_sw);
+    assign we[3] = ((inst_sb & (daddr[1:0] == 2'b00)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b00)));
+                    
+    assign we[2] = ((inst_sb & (daddr[1:0] == 2'b01)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b00)));
+                    
+    assign we[1] = ((inst_sb & (daddr[1:0] == 2'b10)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b10)));
+                    
+    assign we[0] = ((inst_sb & (daddr[1:0] == 2'b11)) | inst_sw | (inst_sh & (daddr[1:0] == 2'b10)));
 
     //reverse data into little endian
     wire[`WORD_BUS] din_reverse = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[23:16],mem_din_i[31:24]};

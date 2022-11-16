@@ -18,7 +18,7 @@ module wb_stage(
 	output wire                   wb_wreg_o,
     output wire [`WORD_BUS      ] wb_wd_o,
     output wire [`WE_HILO]        wb_whilo_o,
-    output wire [`DOUBLE_REG_BUS] wb_hilo_o
+    output wire [`DOUBLE_REG_BUS] wb_hilo_o,
 
 
     input wire                      cp0_we_i,
@@ -31,9 +31,9 @@ module wb_stage(
     );
 
     
-    assign cp0_we_o = (cpu_rst_n == `RST_ENABLE) ?1'b0:cp0_we_i;
-    assign cp0_waddr_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : cp0_waddr_i;
-    assign cp0_wdata_o = (cpu_rst_n == `RST_ENABLE) ? `ZERO_WORD : cp0_wdata_i;
+    assign cp0_we_o = cp0_we_i;
+    assign cp0_waddr_o = cp0_waddr_i;
+    assign cp0_wdata_o = cp0_wdata_i;
 
     // write back to general register file and HILO register
     assign wb_wa_o      = wb_wa_i;

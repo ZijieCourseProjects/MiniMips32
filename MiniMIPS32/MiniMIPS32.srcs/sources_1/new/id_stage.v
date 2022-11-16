@@ -25,6 +25,8 @@ module id_stage(
 
     input wire                      exe2id_mreg,
     input wire                      mem2id_mreg,
+    
+    input wire [`EXC_CODE_BUS]     id_exccode_i,
 
     // Decode information to be used in execution stage
     output wire [`ALUTYPE_BUS  ]    id_alutype_o,
@@ -153,6 +155,7 @@ module id_stage(
     wire inst_eret = ~op[5]& op[4]& ~op[3]& ~op[2]& ~op[1]& ~op[0] &~func[5]& func[4]& func[3]& ~func[2]& ~func[1]& ~func[0] ;
     wire inst_mfc0 = ~op[5]& op[4]& ~op[3]& ~op[2]& ~op[1]& ~op[0] & ~id_inst[23];
     wire inst_mtc0 = ~op[5]& op[4]& ~op[3]& ~op[2]& ~op[1]& ~op[0] & id_inst[23];
+    wire inst_break = (op == 0) && (func == 6'b001101);
     /*------------------------------------------------------------------------------*/
     //signal for equal
     wire equ=(inst_beq)?(id_src1_o==id_src2_o):
@@ -176,7 +179,8 @@ module id_stage(
                                inst_bgez|inst_bgtz|inst_blez|inst_bltz|inst_bltzal|inst_bgezal|inst_mfc0);
 
     // OP-code
-    assign id_aluop_o[7] = (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_syscall|inst_eret|inst_mfc0|inst_mtc0);
+    assign id_aluop_o[7] = (inst_lb|inst_lw|inst_sb|inst_sw|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_syscall
+                                                |inst_eret|inst_mfc0|inst_mtc0|inst_break);
     assign id_aluop_o[6] = (inst_div|inst_divu);
     assign id_aluop_o[5] = (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori
                             |inst_j|inst_jal|inst_jr|inst_beq|inst_bne);
@@ -194,7 +198,7 @@ module id_stage(
     assign id_aluop_o[2] =   (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
                                inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi
-                               |inst_j|inst_jal|inst_jr|inst_syscall|inst_eret|inst_mfc0|inst_mtc0);
+                               |inst_j|inst_jal|inst_jr|inst_syscall|inst_eret|inst_mfc0|inst_mtc0|inst_break);
 
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
@@ -204,7 +208,7 @@ module id_stage(
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
-                              |inst_bne|inst_divu|inst_jr|inst_eret|inst_mtc0);
+                              |inst_bne|inst_divu|inst_jr|inst_eret|inst_mtc0|inst_break);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
@@ -321,11 +325,68 @@ module id_stage(
                          (mem2id_mreg == 1'b1))?`STOP:`NOSTOP;             
 
     // Determine if the next instruction is a delayed slot instruction
-    assign next_delay_o=(inst_j | inst_jr | inst_jal | inst_beq | inst_bne );
+    //TODO: JALR
+    assign next_delay_o = (inst_j | inst_jr | inst_jal | inst_beq | inst_bne |inst_bgez | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal);
     
+       //TODO: JALR
+    wire is_valid_op = inst_and  |  inst_subu | inst_slt |
+                        inst_add |
+                        inst_mult |
+                        inst_mfhi |
+                        inst_mflo |
+                        inst_sll |
+                        inst_ori |
+                        inst_lui|
+                        inst_addiu |
+                        inst_sltiu |
+                        inst_lb |
+                        inst_lw |
+                        inst_sb |
+                        inst_sw |
+                        inst_addu |
+                        inst_sub |
+                        inst_sltu |
+                        inst_or |
+                        inst_nor |
+                        inst_xor |
+                        inst_srl |
+                        inst_sra |
+                        inst_sllv |
+                        inst_srlv |
+                        inst_srav |
+                        inst_multu |
+                        inst_mthi |
+                        inst_mtlo |
+                        inst_addi |
+                        inst_slti |
+                        inst_andi |
+                        inst_xori|
+                        inst_lbu |
+                        inst_lh |
+                        inst_lhu |
+                        inst_sh|
+                        inst_j |
+                        inst_jal |
+                        inst_jr |
+                        inst_beq |
+                        inst_bne |
+                        inst_bgez |
+                        inst_bgtz |
+                        inst_blez |
+                        inst_bltz |
+                        inst_bgezal|
+                        inst_bltzal |
+                        inst_div |
+                        inst_divu |
+                        inst_syscall |
+                        inst_eret |
+                        inst_mfc0 |
+                        inst_mtc0 ;
     // Determine whether there is an exception in the instruction currently in the decoding stage, and set the corresponding exception type code
-    assign id_exccode_o=(inst_syscall == `TRUE_V)?`EXC_SYS:
-                        (inst_eret == `TRUE_V)?`EXC_ERET:`EXC_NONE;
+        assign id_exccode_o= (inst_syscall == 1'b1)?`EXC_SYS:
+                        (inst_eret == 1'b1)?`EXC_ERET:
+                        (inst_break == `TRUE_V)?`EXC_BREAK:
+                        (is_valid_op == 0)?`EXC_RI:id_exccode_i;
     assign cp0_addr = rd; 
     
 endmodule

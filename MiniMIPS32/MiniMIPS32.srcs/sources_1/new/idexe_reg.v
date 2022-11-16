@@ -33,7 +33,7 @@ module idexe_reg (
     output reg                    exe_mreg,
     output reg  [`REG_BUS]        exe_din,
     output reg  [`WE_HILO]        exe_whilo,
-    output reg  [`REG_BUS]        exe_ret_addr，
+    output reg  [`REG_BUS]        exe_ret_addr,
 
     output reg  [`REG_ADDR_BUS]   exe_cp0_addr,
     output reg  [`INST_ADDR_BUS]  exe_pc,
