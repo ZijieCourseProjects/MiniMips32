@@ -3,6 +3,10 @@
 module if_stage (
     input 	wire 					cpu_clk_50M,
     input 	wire 					cpu_rst_n,
+    
+    input   wire                    flush,          // Clear pipeline signals
+    input   wire [`INST_ADDR_BUS]   cp0_excaddr,    // Exception Handler Entry Address
+    
     input 	wire [`INST_ADDR_BUS]	jump_addr_1,
     input 	wire [`INST_ADDR_BUS]	jump_addr_2,
     input 	wire [`INST_ADDR_BUS]	jump_addr_3,
@@ -31,14 +35,17 @@ module if_stage (
 		
 	end
 	
-	assign  ice = (stall[1]==`TRUE_V) ? 1'b0:
-	                       (ce == 0)?1'b0:1'b1;
+	assign  ice = (stall[1]==`TRUE_V || flush)?1'b0:ce;
     
     always @(posedge cpu_clk_50M) begin
         if (ce == `CHIP_DISABLE)
             pc <= `PC_INIT;                   // keep PC at the start of text segment while resetting
-        else if(stall[0]==`NOSTOP) begin
-            pc <= pc_next;                    // update PC register 
+        else begin
+            if(flush==`TRUE_V)
+                pc <= cp0_excaddr;
+            else if(stall[0] == `NOSTOP) begin
+                pc <= pc_next;                 
+            end
         end
     end
     
