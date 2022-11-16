@@ -45,7 +45,7 @@ main:
    mflo $t7      #$t7=0x1
 
 #存取指令的测试
-   lui  $at,0x1000    #$at=0x10000000
+   lui  $at,0x8000    #$at=0x80000000
    sw   $at,0x0($at)
    lw   $t4,0x0($at)  #$t4=0x80000000
    add  $t5,$zero,$t4  #$t5=0x80000000

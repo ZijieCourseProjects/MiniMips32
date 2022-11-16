@@ -13,7 +13,16 @@ module exemem_reg (
     input  wire [`REG_BUS]         exe_din,
     input  wire [`WE_HILO]         exe_whilo,
     input  wire [`DOUBLE_REG_BUS]  exe_hilo,
+
+    input wire                     exe_cp0_we,
+    input wire [`REG_ADDR_BUS ]    exe_cp0_waddr,
+    input wire [`REG_BUS      ]    exe_cp0_wdata,
     
+    input wire                     flush,
+    input wire [`INST_ADDR_BUS]    exe_pc,
+    input wire                     exe_in_delay,
+    input wire [`EXC_CODE_BUS ]    exe_exccode,
+
     output reg  [`ALUOP_BUS   ]     mem_aluop,
     output reg  [`REG_ADDR_BUS]     mem_wa,
     output reg                      mem_wreg,
@@ -21,11 +30,19 @@ module exemem_reg (
     output reg                      mem_mreg,
     output reg  [`REG_BUS]          mem_din,
     output reg  [`WE_HILO]          mem_whilo,
-    output reg  [`DOUBLE_REG_BUS]   mem_hilo
+    output reg  [`DOUBLE_REG_BUS]   mem_hilo,
+
+    output reg                      mem_cp0_we,
+    output reg [`REG_ADDR_BUS ]     mem_cp0_waddr,
+    output reg [`REG_BUS      ]     mem_cp0_wdata,
+
+    output reg [`INST_ADDR_BUS]     mem_pc,
+    output reg                      mem_in_delay,
+    output reg [`EXC_CODE_BUS ]     mem_exccode
     );
 
     always @(posedge cpu_clk_50M) begin
-    if (cpu_rst_n == `RST_ENABLE) begin
+    if (cpu_rst_n == `RST_ENABLE || flush) begin
         mem_aluop              <= `MINIMIPS32_SLL;
         mem_wa 				   <= `REG_NOP;
         mem_wreg   			   <= `WRITE_DISABLE;
@@ -34,6 +51,12 @@ module exemem_reg (
         mem_din                <= `ZERO_WORD;
         mem_whilo              <= `WRITE_DISABLE;
         mem_hilo               <= `ZERO_DWORD;
+        mem_cp0_we             <= `FALSE_V;
+        mem_cp0_waddr          <= `ZERO_WORD;
+        mem_cp0_wdata          <= `ZERO_WORD;
+        mem_pc                 <= `PC_INIT;
+        mem_in_delay           <= `FALSE_V;
+        mem_exccode            <= `EXC_NONE;
     end
     else if(stall[3]==`STOP) begin
         mem_aluop              <= `MINIMIPS32_SLL;
@@ -44,6 +67,12 @@ module exemem_reg (
         mem_din                <= `ZERO_WORD;
         mem_whilo              <= `WRITE_DISABLE;
         mem_hilo               <= `ZERO_DWORD;
+        mem_cp0_we             <= `FALSE_V;
+        mem_cp0_waddr          <= `ZERO_WORD;
+        mem_cp0_wdata          <= `ZERO_WORD;
+        mem_pc                 <= `PC_INIT;
+        mem_in_delay           <= `FALSE_V;
+        mem_exccode            <= `EXC_NONE;
     end    
     else if(stall[3]==`NOSTOP) begin
         mem_aluop              <= exe_aluop;
@@ -54,6 +83,12 @@ module exemem_reg (
         mem_din                <= exe_din;
         mem_whilo              <= exe_whilo;
         mem_hilo               <= exe_hilo;
+        mem_cp0_we             <= exe_cp0_we;
+        mem_cp0_waddr          <= exe_cp0_waddr;
+        mem_cp0_wdata          <= exe_cp0_wdata;
+        mem_pc                 <= exe_pc;
+        mem_in_delay           <= exe_in_delay;
+        mem_exccode            <= exe_exccode;
     end
   end
 
