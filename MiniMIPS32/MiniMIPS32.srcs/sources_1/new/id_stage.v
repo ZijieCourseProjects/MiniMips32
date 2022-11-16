@@ -179,12 +179,12 @@ module id_stage(
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
                               inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl
-                              |inst_jal|inst_divu);
+                              |inst_jal);
 
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
-                              |inst_bne|inst_jr);
+                              |inst_bne|inst_jr|inst_divu);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
@@ -251,14 +251,18 @@ module id_stage(
     assign id_wa_o = (rtsel == `RT_ENABLE)? rt:
                       (jal==`TRUE_V)?5'b11111:rd;
 
-    //data to be written into the memory
-    assign id_din_o = rd2;
     //generate signal to choose sorce operand
     wire [1:0] fwrd1=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra1)? 2'b01:
                       (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra1)? 2'b10:2'b11;
                       
     wire [1:0] fwrd2=(exe2id_wreg==`WRITE_ENABLE && exe2id_wa==ra2)? 2'b01:
                       (mem2id_wreg==`WRITE_ENABLE && mem2id_wa==ra2)? 2'b10:2'b11; 
+    
+    //data to be written into the memory                  
+    assign id_din_o =  (fwrd2 == 2'b01) ?   exe2id_wd:
+                                    (fwrd2 == 2'b10) ?  mem2id_wd:
+                                    (fwrd2 == 2'b11) ?  rd2:`ZERO_WORD;
+                                    
     //signal for commit address
     wire [`INST_ADDR_BUS]pc_plus_8 =pc_plus_4+4;
     wire [`JUMP_BUS]     instr_index=id_inst[25:0];

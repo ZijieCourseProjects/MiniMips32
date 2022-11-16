@@ -91,6 +91,14 @@
 
     //reverse data into little endian
     wire[`WORD_BUS] din_reverse = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[23:16],mem_din_i[31:24]};
-
-    assign din = din_reverse;
+    wire[`WORD_BUS] din_byte = {mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0],mem_din_i[7:0]};
+    wire[`WORD_BUS] din_half = {mem_din_i[7:0],mem_din_i[15:8],mem_din_i[7:0],mem_din_i[15:8]};
+    assign din = 
+                         (we == 4'b1111 )?din_reverse:
+                         (we == 4'b1000 )?din_byte:
+                         (we == 4'b0100 )?din_byte:
+                         (we == 4'b0010 )?din_byte:
+                         (we == 4'b0001 )?din_byte:
+                         (we == 4'b0011 )?din_half:
+                         (we == 4'b1100 )?din_half:`ZERO_WORD;
 endmodule
