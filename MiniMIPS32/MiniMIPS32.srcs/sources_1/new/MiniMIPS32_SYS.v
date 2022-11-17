@@ -15,6 +15,9 @@ module MiniMIPS32_SYS(
     wire[`BSEL_BUS]       we;
     wire[`INST_BUS]       din;
     wire[`INST_BUS]       dout;
+    wire[`CP0_INT_BUS] int;
+    
+    assign int = 8'b0;
 
     clkdiv clocking
    (
@@ -37,6 +40,7 @@ module MiniMIPS32_SYS(
         .cpu_rst_n(sys_rst_n),
         .iaddr(iaddr),
         .ice(ice),
+        .int(int),
         .inst(inst),
         .dce(dce),
         .daddr(daddr),
