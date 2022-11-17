@@ -85,6 +85,7 @@
 `define MINIMIPS32_J               8'h2C
 `define MINIMIPS32_JR              8'h2D
 `define MINIMIPS32_JAL             8'h2E
+`define MINIMIPS32_JALR           8'h2F
 `define MINIMIPS32_BEQ             8'h30
 `define MINIMIPS32_BNE             8'h31
 `define MINIMIPS32_BREAK           8'h85
