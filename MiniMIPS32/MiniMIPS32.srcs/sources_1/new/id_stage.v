@@ -148,7 +148,7 @@ module id_stage(
     wire inst_bltz=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&~rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
     wire inst_bltzal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[4]&~rt[3]&~rt[2]&~rt[1]&~rt[0];
     wire inst_bgezal=~op[5]&~op[4]&~op[3]&~op[2]&~op[1]&op[0]&rt[4]&~rt[3]&~rt[2]&~rt[1]&rt[0];
-   // wire inst_jalr=inst_reg& ~func[5]&~func[4]&func[3]& ~func[2]&~func[1]&func[0];
+    wire inst_jalr=inst_reg& ~func[5]&~func[4]&func[3]& ~func[2]&~func[1]&func[0];
    
     // exception handler
     wire inst_syscall = inst_reg &~func[5]& ~func[4]& func[3]& func[2]& ~func[1]& ~func[0];
@@ -169,13 +169,13 @@ module id_stage(
     /*-------------------- Step2: generate sepcific controlling signal --------------------*/
     // operate_type
     assign id_alutype_o[2] = (inst_sll|inst_sra|inst_srav|inst_sllv|inst_srlv|inst_srl|
-                                inst_j|inst_jal|inst_jr|inst_beq|inst_bne|
+                                inst_j|inst_jal|inst_jr|inst_beq|inst_bne|inst_jalr|
                                 inst_bgez|inst_bgtz|inst_blez|inst_bltz|inst_bltzal|inst_bgezal|inst_syscall|inst_eret|inst_mtc0);
     assign id_alutype_o[1] = (inst_and|inst_mfhi|inst_mflo|inst_ori|inst_lui|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_syscall|inst_eret|inst_mfc0|inst_mtc0);
     assign id_alutype_o[0] = (inst_add|inst_subu|inst_slt|inst_mfhi|inst_mflo|
                                inst_addiu|inst_sltiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                                inst_addi|inst_sub|inst_lbu|inst_lh|inst_lhu|inst_sh|inst_slti|inst_sltu
-                               |inst_j|inst_jal|inst_jr|inst_beq|inst_bne|
+                               |inst_j|inst_jal|inst_jr|inst_beq|inst_bne|inst_jalr|
                                inst_bgez|inst_bgtz|inst_blez|inst_bltz|inst_bltzal|inst_bgezal|inst_mfc0);
 
     // OP-code
@@ -183,7 +183,7 @@ module id_stage(
                                                 |inst_eret|inst_mfc0|inst_mtc0|inst_break);
     assign id_aluop_o[6] = (inst_div|inst_divu);
     assign id_aluop_o[5] = (inst_slt|inst_sltiu|inst_slti|inst_sltu|inst_nor|inst_or|inst_xor|inst_xori
-                            |inst_j|inst_jal|inst_jr|inst_beq|inst_bne);
+                            |inst_j|inst_jal|inst_jr|inst_beq|inst_bne|inst_jalr);
     assign id_aluop_o[4] = (inst_add|inst_subu|inst_and|inst_mult|inst_sll|
                              inst_ori|inst_addiu|inst_lb|inst_lw|inst_sb|inst_sw|inst_addu|
                              inst_addi|inst_multu|inst_sra|inst_srav|inst_sub|inst_lbu|
@@ -193,27 +193,27 @@ module id_stage(
     assign id_aluop_o[3] =   (inst_add|inst_subu|inst_and|inst_mfhi|inst_mflo|
                                inst_ori|inst_addiu|inst_sb|inst_sw|inst_addi|inst_sub|
                                inst_mthi|inst_mtlo|inst_sh|inst_andi|inst_sllv|inst_srlv|inst_srl
-                               |inst_j|inst_jal|inst_jr|inst_mfc0|inst_mtc0);
+                               |inst_j|inst_jal|inst_jr|inst_mfc0|inst_mtc0|inst_jalr);
 
     assign id_aluop_o[2] =   (inst_slt|inst_and|inst_mult|inst_mfhi|inst_mflo|
                                inst_ori|inst_lui|inst_sltiu|inst_addu|inst_multu|inst_sub|
                                inst_mthi|inst_mtlo|inst_lhu|inst_slti|inst_sltu|inst_andi
-                               |inst_j|inst_jal|inst_jr|inst_syscall|inst_eret|inst_mfc0|inst_mtc0|inst_break);
+                               |inst_j|inst_jal|inst_jr|inst_syscall|inst_eret|inst_mfc0|inst_mtc0|inst_break|inst_jalr);
 
     assign id_aluop_o[1] =   (inst_subu|inst_slt|inst_sltiu|inst_lw|inst_sw|inst_addu|
                               inst_addi|inst_sra|inst_srav|inst_sub|inst_mthi|inst_mtlo|
                               inst_lh|inst_andi|inst_xor|inst_xori|inst_sllv|inst_srl
-                              |inst_jal|inst_syscall|inst_eret);
+                              |inst_jal|inst_syscall|inst_eret|inst_jalr);
 
     assign id_aluop_o[0] =   (inst_subu|inst_mflo|inst_sll|inst_ori|inst_lui|
                               inst_addiu|inst_sltiu|inst_addu|inst_multu|inst_sra|inst_mtlo|
                               inst_lbu|inst_lh|inst_sh|inst_slti|inst_andi|inst_or|inst_xori|inst_sllv|inst_srlv
-                              |inst_bne|inst_divu|inst_jr|inst_eret|inst_mtc0|inst_break);
+                              |inst_bne|inst_divu|inst_jr|inst_eret|inst_mtc0|inst_break|inst_jalr);
      // enabling signal for GPRs
     assign id_wreg_o     =    (inst_add|inst_subu|inst_slt|inst_and|inst_mfhi|
                                inst_mflo|inst_sll|inst_ori|inst_lui|inst_addiu|inst_sltiu|
                                inst_lb|inst_lw|inst_addu|inst_addi|inst_sra|inst_srav|inst_sub|
-                               inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl
+                               inst_lhu|inst_lh|inst_lbu|inst_slti|inst_sltu|inst_andi|inst_nor|inst_or|inst_xor|inst_xori|inst_sllv|inst_srlv|inst_srl|inst_jalr
                                |inst_jal|inst_bltzal|inst_bgezal|inst_mfc0);
 
     //enabling signal for writing hilo register
@@ -241,22 +241,20 @@ module id_stage(
     //signal for Subroutine calls 
     wire jal=inst_jal|inst_bltzal|inst_bgezal;
     //signal for choose address
-    assign jtsel[1]=inst_jr|inst_beq&equ|inst_bne&equ|inst_bgez&equ|inst_bgtz&equ|inst_blez&equ|inst_bltz&equ|inst_bltzal&equ|inst_bgezal&equ;
+    assign jtsel[1]=inst_jr|inst_beq&equ|inst_bne&equ|inst_bgez&equ|inst_bgtz&equ|inst_blez&equ|inst_bltz&equ|inst_bltzal&equ|inst_bgezal&equ|inst_jalr;
     assign jtsel[0]=inst_j|inst_jal|inst_beq&equ|inst_bne&equ|inst_bgez&equ|inst_bgtz&equ|inst_blez&equ|inst_bltz&equ|inst_bltzal&equ|inst_bgezal&equ;
     //memory to register signal
     assign id_mreg_o = (inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
 
-    //TODO add jalr
     assign rreg1=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult|
                                 inst_ori | inst_addiu | inst_sltiu | inst_lb | inst_lw | inst_sb | inst_sw
                              | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
                              | inst_xor | inst_sllv | inst_srlv | inst_srav | inst_multu 
                              |  inst_mthi | inst_mtlo| inst_addi | inst_slti | inst_andi | inst_xori | inst_lbu 
                              | inst_lh |inst_lhu | inst_sh | inst_jr | inst_beq |inst_bne |inst_bgez 
-                             | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal | inst_div | inst_divu);
+                             | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal | inst_div | inst_divu|inst_jalr);
 
 
-    //TODO add mtc0
     assign rreg2=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult | inst_sll | inst_sb | inst_sw
                               | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
                               | inst_xor | inst_srl| inst_sra | inst_sllv | inst_srlv | inst_srav | inst_multu |inst_sh
@@ -325,12 +323,11 @@ module id_stage(
                          (mem2id_mreg == 1'b1))?`STOP:`NOSTOP;             
 
     // Determine if the next instruction is a delayed slot instruction
-    //TODO: JALR
-    assign next_delay_o = (inst_j | inst_jr | inst_jal | inst_beq | inst_bne |inst_bgez | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal);
+    assign next_delay_o = (inst_j | inst_jr | inst_jal | inst_beq | inst_bne |inst_bgez | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal|inst_jalr);
     
-       //TODO: JALR
     wire is_valid_op = inst_and  |  inst_subu | inst_slt |
                         inst_add |
+                        inst_jalr |
                         inst_mult |
                         inst_mfhi |
                         inst_mflo |
