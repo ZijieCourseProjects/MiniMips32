@@ -5,19 +5,18 @@
    .text
    #对异常处理进行测试
    main:
-   lui $s0,0x1111
-   lui  $s7,0x9999     
-   addi $s0,$s0,0x1111
-   lw  $s1,0x0($zero)    #加载异常 adel
-   addi $s0,$s0,0x1111
+   lui $s0,0x1000
+   addi $s0,$s0,0x1000
+   lw  $s1,0x1($zero)    #加载异常 adel
+   addi $s0,$s0,0x1001
    syscall               #sys
-   addi $s0,$s0,0x1111
-   sw  $s1,0x0($zero)    #存储异常 ades
-   addi $s0,$s0,0x1111
+   addi $s0,$s0,0x1002
+   sw  $s1,0x1($zero)    #存储异常 ades
+   addi $s0,$s0,0x1003
    break                 #bp
-   addi $s0,$s0,0x1111
-    #未定义指令ffffffff ri 
-   addi $s0,$s0,0x1111
+   addi $s0,$s0,0x1004
+   ffffffff      #ri 不存在的指令
+   addi $s0,$s0,0x1005
    lui  $s2,0x7fff
    lui  $s3,0x7fff
    add  $s1,$s2,$s3      #ov
