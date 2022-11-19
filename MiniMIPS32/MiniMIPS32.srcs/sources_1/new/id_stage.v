@@ -42,9 +42,7 @@ module id_stage(
     output wire [`REG_BUS      ]    id_src2_o,
 
     // register address to register file
-    output wire                     rreg1,
     output wire [`REG_ADDR_BUS ]    ra1,
-    output wire                     rreg2,
     output wire [`REG_ADDR_BUS ]    ra2,
     output wire [`INST_ADDR_BUS]    jump_addr_1,
     output wire [`INST_ADDR_BUS]    jump_addr_2,
@@ -246,20 +244,6 @@ module id_stage(
     //memory to register signal
     assign id_mreg_o = (inst_lb|inst_lw|inst_lhu|inst_lh|inst_lbu);
 
-    assign rreg1=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult|
-                                inst_ori | inst_addiu | inst_sltiu | inst_lb | inst_lw | inst_sb | inst_sw
-                             | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
-                             | inst_xor | inst_sllv | inst_srlv | inst_srav | inst_multu 
-                             |  inst_mthi | inst_mtlo| inst_addi | inst_slti | inst_andi | inst_xori | inst_lbu 
-                             | inst_lh |inst_lhu | inst_sh | inst_jr | inst_beq |inst_bne |inst_bgez 
-                             | inst_bgtz | inst_blez | inst_bltz | inst_bgezal | inst_bltzal | inst_div | inst_divu|inst_jalr);
-
-
-    assign rreg2=            (inst_add | inst_subu | inst_slt | inst_and | inst_mult | inst_sll | inst_sb | inst_sw
-                              | inst_addu | inst_sub | inst_sltu | inst_or | inst_nor 
-                              | inst_xor | inst_srl| inst_sra | inst_sllv | inst_srlv | inst_srav | inst_multu |inst_sh
-                              | inst_beq |inst_bne | inst_div | inst_divu | inst_mtc0 );
-
     //rs -> ra1 , rt -> ra2
     assign ra1 = rs;
     assign ra2 = rt;
@@ -315,11 +299,11 @@ module id_stage(
                        (fwrd2==2'b10)? mem2id_wd:   
                        (fwrd2==2'b11)? rd2:`ZERO_WORD; 
 
-    assign stallreq_id = (((exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 && rreg1 == `READ_ENABLE)||
-                         (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra2 && rreg2 == `READ_ENABLE))&&
+    assign stallreq_id = (((exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra1 )||
+                         (exe2id_wreg == `WRITE_ENABLE && exe2id_wa == ra2  ))&&
                          (exe2id_mreg == 1'b1))?`STOP:
-                         (((mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra1 && rreg1 == `READ_ENABLE)||
-                         (mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra2 && rreg2 == `READ_ENABLE))&&
+                         (((mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra1 )||
+                         (mem2id_wreg == `WRITE_ENABLE && mem2id_wa == ra2 ))&&
                          (mem2id_mreg == 1'b1))?`STOP:`NOSTOP;             
 
     // Determine if the next instruction is a delayed slot instruction
